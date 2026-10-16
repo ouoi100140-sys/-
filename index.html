@@ -1,0 +1,2540 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Probability UX Lab ม.3 | Interactive Probability</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
+<style>
+:root{
+  --blue:#1496e8;
+  --deepblue:#2844b8;
+  --purple:#7b24df;
+  --pink:#ff43c6;
+  --hotpink:#ff2ead;
+  --orange:#ffad2f;
+  --cyan:#20d8ff;
+  --white:#ffffff;
+  --ink:#183056;
+  --muted:#7283a0;
+  --glass:rgba(255,255,255,.72);
+  --glass2:rgba(255,255,255,.46);
+  --line:rgba(255,255,255,.76);
+  --shadow:0 24px 55px rgba(34,50,140,.24);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:"Noto Sans Thai",Inter,system-ui,-apple-system,"Segoe UI","Noto Sans Thai",Tahoma,sans-serif;
+  min-height:100vh;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 11% 18%, rgba(28,202,255,.45) 0 10%, transparent 26%),
+    radial-gradient(circle at 85% 28%, rgba(255,55,195,.28) 0 12%, transparent 28%),
+    linear-gradient(135deg,#168fc7 0%,#2760c8 35%,#3133a9 60%,#8320d7 100%);
+  background-attachment:fixed;
+  overflow-x:hidden;
+}
+body:before{
+  content:"";
+  position:fixed;
+  inset:auto auto 6% -5%;
+  width:360px;height:360px;
+  border-radius:50%;
+  background:linear-gradient(135deg,rgba(255,80,189,.72),rgba(50,216,255,.36));
+  filter:blur(8px);
+  z-index:-1;
+}
+body:after{
+  content:"";
+  position:fixed;
+  right:-100px;top:80px;
+  width:330px;height:330px;
+  border-radius:50%;
+  background:linear-gradient(135deg,rgba(255,174,47,.38),rgba(255,48,179,.45));
+  z-index:-1;
+}
+button,input,select{font:inherit}
+button{transition:.2s ease}
+button:active{transform:scale(.98)}
+.app{max-width:1200px;margin:auto;padding:22px 16px 60px}
+
+.hero{
+  position:relative;
+  min-height:320px;
+  padding:36px;
+  border-radius:34px;
+  overflow:hidden;
+  background:
+    linear-gradient(135deg,rgba(17,116,209,.88),rgba(53,55,179,.86) 53%,rgba(125,34,214,.86));
+  border:1px solid rgba(255,255,255,.7);
+  box-shadow:var(--shadow);
+}
+.hero:before{
+  content:"P";
+  position:absolute;
+  left:54px;top:42px;
+  width:150px;height:215px;
+  border-radius:30px;
+  display:grid;place-items:center;
+  background:linear-gradient(160deg,#ff48ca,#ff2fad 55%,#ca2cff);
+  color:white;
+  font-size:76px;font-weight:1000;
+  box-shadow:0 24px 40px rgba(16,25,90,.32);
+  border:3px solid rgba(255,255,255,.38);
+}
+.hero:after{
+  content:"UX × PROBABILITY";
+  position:absolute;
+  right:44px;top:75px;
+  width:390px;height:190px;
+  border-radius:50%;
+  display:grid;place-items:center;
+  font-size:38px;
+  font-weight:1000;
+  letter-spacing:-2px;
+  color:#1d2d83;
+  background:
+    radial-gradient(circle at 33% 50%,var(--orange) 0 34%,transparent 35%),
+    radial-gradient(circle at 67% 50%,#e746b7 0 34%,transparent 35%);
+  text-shadow:4px 4px 0 rgba(255,255,255,.32);
+}
+.hero h1{
+  position:relative;
+  z-index:2;
+  margin:0 0 0 185px;
+  max-width:460px;
+  font-size:clamp(42px,5vw,70px);
+  line-height:.93;
+  letter-spacing:-3px;
+  font-weight:1000;
+  color:#fff;
+}
+.hero p{
+  position:relative;
+  z-index:2;
+  margin:22px 0 0 185px;
+  max-width:500px;
+  color:#edf5ff;
+  font-size:16px;
+  line-height:1.7;
+}
+.badges{
+  position:relative;z-index:2;
+  display:flex;flex-wrap:wrap;gap:8px;
+  margin:22px 0 0 185px
+}
+.badge{
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.16);
+  border:1px solid rgba(255,255,255,.44);
+  color:white;
+  font-size:13px;
+  font-weight:800;
+  backdrop-filter:blur(10px)
+}
+
+.nav{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:10px;
+  margin:18px 0 22px
+}
+.nav button{
+  border:1px solid rgba(255,255,255,.72);
+  background:rgba(255,255,255,.45);
+  color:#1e4384;
+  padding:14px 9px;
+  border-radius:16px;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 12px 22px rgba(35,47,123,.13);
+  backdrop-filter:blur(16px)
+}
+.nav button:hover{transform:translateY(-2px);background:rgba(255,255,255,.68)}
+.nav button.active{
+  color:white;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  border-color:rgba(255,255,255,.9);
+  box-shadow:0 15px 28px rgba(108,37,197,.28)
+}
+
+.panel{display:none}
+.panel.active{display:block;animation:fade .28s ease}
+@keyframes fade{from{opacity:.2;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.grid{display:grid;grid-template-columns:1.04fr .96fr;gap:18px}
+.card{
+  position:relative;
+  overflow:hidden;
+  background:var(--glass);
+  border:1px solid rgba(255,255,255,.86);
+  border-radius:28px;
+  padding:22px;
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(22px)
+}
+.card:after{
+  content:"";
+  position:absolute;
+  right:-45px;top:-45px;
+  width:120px;height:120px;
+  border-radius:28px;
+  transform:rotate(18deg);
+  background:linear-gradient(135deg,rgba(255,67,198,.15),rgba(32,216,255,.14))
+}
+.card h2,.card h3{margin-top:0}
+.card h2{
+  font-size:clamp(28px,4vw,40px);
+  line-height:1.05;
+  letter-spacing:-1.5px;
+  color:#1b4382;
+  font-weight:1000
+}
+.card h2:after{
+  content:"";
+  display:block;
+  width:78px;height:6px;
+  margin-top:10px;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--pink),var(--orange))
+}
+.card h3{font-size:22px;color:#284c87;font-weight:950}
+.note{color:#687c9c;line-height:1.68}
+
+.control{
+  margin:17px 0;
+  padding:14px;
+  border-radius:18px;
+  background:rgba(255,255,255,.60);
+  border:1px solid rgba(255,255,255,.88)
+}
+.control label{
+  font-weight:900;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+  color:#284c87
+}
+input[type=range]{
+  width:100%;
+  height:30px;
+  accent-color:var(--pink)
+}
+.selectbox,.numBox{
+  width:100%;
+  padding:13px 14px;
+  border-radius:14px;
+  border:1px solid #c8d5ee;
+  background:rgba(255,255,255,.94);
+  color:#173861;
+  font-weight:800
+}
+
+.primary{
+  width:100%;
+  border:0;
+  border-radius:14px;
+  padding:14px 18px;
+  font-weight:1000;
+  color:white;
+  cursor:pointer;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  box-shadow:0 12px 24px rgba(121,40,204,.24)
+}
+.primary:hover{filter:brightness(1.06)}
+.secondary{
+  border:1px solid rgba(255,255,255,.88);
+  border-radius:14px;
+  padding:12px 14px;
+  background:rgba(255,255,255,.76);
+  color:#234d87;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 8px 18px rgba(60,87,164,.10)
+}
+.secondary:hover{background:#fff}
+
+.bigprob{
+  display:grid;
+  place-items:center;
+  min-height:235px;
+  border-radius:26px;
+  background:
+    radial-gradient(circle at 25% 20%,rgba(255,255,255,.94),rgba(255,255,255,.58)),
+    linear-gradient(135deg,#ecf7ff,#f8e9ff);
+  border:1px solid rgba(255,255,255,.94);
+  box-shadow:inset 0 1px 0 #fff,0 18px 34px rgba(65,90,173,.12)
+}
+.prob-value{
+  font-size:clamp(58px,9vw,102px);
+  font-weight:1000;
+  letter-spacing:-5px;
+  background:linear-gradient(135deg,#1688ed,#5c4df5,#ff43c6);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent
+}
+.formula{
+  padding:14px 16px;
+  border-radius:16px;
+  background:rgba(255,255,255,.80);
+  border:1px solid rgba(255,255,255,.95);
+  font-size:18px;
+  font-weight:950;
+  text-align:center;
+  margin-top:8px;
+  color:#244b84;
+  box-shadow:0 10px 20px rgba(64,91,170,.10)
+}
+.meter{
+  height:17px;
+  background:rgba(255,255,255,.74);
+  border:1px solid rgba(255,255,255,.92);
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:18px
+}
+.meter>div{
+  height:100%;
+  width:0;
+  background:linear-gradient(90deg,var(--cyan),var(--pink),var(--orange));
+  transition:.2s
+}
+
+.statrow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.stat{
+  background:rgba(255,255,255,.66);
+  border:1px solid rgba(255,255,255,.86);
+  padding:13px;
+  border-radius:15px;
+  text-align:center
+}
+.stat small{font-weight:800;color:#6f82a0}
+.stat b{display:block;font-size:25px;color:#4a49d6;letter-spacing:-1px}
+
+.diceWrap{display:flex;justify-content:center;align-items:center;min-height:180px}
+.die{
+  width:120px;height:120px;
+  border-radius:24px;
+  background:linear-gradient(145deg,#ffffff,#f2eaff);
+  color:#663fd7;
+  border:1px solid rgba(255,255,255,.95);
+  box-shadow:0 18px 30px rgba(72,61,171,.18);
+  display:grid;place-items:center;
+  font-size:76px;
+  transition:.15s;
+  user-select:none
+}
+.die.roll{transform:rotate(8deg) scale(1.04)}
+
+.chart{
+  height:230px;
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+  padding:18px 8px 28px;
+  border-bottom:2px solid rgba(106,126,176,.22);
+  position:relative
+}
+.barItem{height:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;position:relative}
+.bar{
+  width:min(42px,80%);
+  min-height:2px;
+  background:linear-gradient(180deg,var(--orange),var(--pink),var(--purple));
+  border-radius:10px 10px 3px 3px;
+  transition:.25s
+}
+.barItem span{position:absolute;bottom:-24px;font-weight:900;color:#4d6490}
+.barItem small{font-weight:800;color:#7185a1}
+
+.ballbag{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;min-height:160px;align-content:center}
+.ball{
+  width:42px;height:42px;border-radius:50%;
+  box-shadow:inset -7px -9px 12px #0001,0 8px 14px rgba(62,83,160,.18);
+  border:2px solid rgba(255,255,255,.92)
+}
+.red{background:#ff607e}.blue{background:#3a7fff}.green{background:#34d59a}.yellow{background:#ffca40}
+
+.drawn{
+  min-height:70px;
+  border:1px solid rgba(255,255,255,.85);
+  border-radius:16px;
+  padding:14px;
+  display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;
+  background:rgba(255,255,255,.52)
+}
+.drawTag{padding:9px 12px;border-radius:999px;font-weight:900;color:#fff;font-size:14px}
+.drawTag.red{background:#ff607e}.drawTag.blue{background:#3a7fff}.drawTag.green{background:#34d59a}.drawTag.yellow{background:#ffca40;color:#674d00}
+
+.summaryGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.summaryItem{
+  border:1px solid rgba(255,255,255,.85);
+  border-radius:14px;
+  padding:10px;
+  text-align:center;
+  background:rgba(255,255,255,.58);
+  font-weight:900
+}
+.summaryItem b{display:block;font-size:25px;margin-top:4px;color:#5046d8}
+.inlineGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.sample-space{
+  margin-top:15px;
+  padding:15px;
+  border-radius:18px;
+  background:rgba(255,255,255,.54);
+  border:1px solid rgba(255,255,255,.88);
+  box-shadow:0 10px 22px rgba(70,92,163,.08)
+}
+.sample-space h4{margin:0 0 10px;font-size:16px;color:#2c4f88}
+.sample-set{display:flex;gap:8px;flex-wrap:wrap}
+.sample-item{
+  min-width:58px;
+  padding:9px 12px;
+  text-align:center;
+  border-radius:11px;
+  background:rgba(255,255,255,.78);
+  border:1px solid rgba(181,195,232,.78);
+  color:#244b83;
+  font-weight:950;
+  transition:.2s
+}
+.sample-item.active{
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:#fff;
+  border-color:transparent;
+  transform:translateY(-2px);
+  box-shadow:0 10px 18px rgba(105,46,192,.23)
+}
+.sample-item.event{
+  outline:3px solid var(--orange);
+  outline-offset:2px
+}
+.sample-item.zero{opacity:.38}
+.sample-caption{font-size:14px;color:#687d9b;margin-top:9px;line-height:1.55}
+
+.quizHead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.score{
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:white;
+  border-radius:999px;
+  padding:9px 15px;
+  font-weight:1000;
+  box-shadow:0 10px 20px rgba(103,47,193,.20)
+}
+.qcard{
+  background:rgba(255,255,255,.65);
+  border:1px solid rgba(255,255,255,.88);
+  border-radius:18px;
+  padding:17px;
+  margin:12px 0
+}
+.qtitle{font-weight:950;line-height:1.55;margin-bottom:10px;color:#284d86}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.option{
+  text-align:left;
+  border:1px solid #c9d5ef;
+  background:rgba(255,255,255,.78);
+  border-radius:12px;
+  padding:12px;
+  cursor:pointer;
+  font-weight:850;
+  color:#284a76
+}
+.option:hover{border-color:#b573ef;background:#fbf1ff}
+.option.correct{background:#e1f8ee;border-color:#77d8b2;color:#0c7553}
+.option.wrong{background:#ffe7ef;border-color:#ef97ad;color:#a23950}
+.option:disabled{cursor:default}
+.feedback{display:none;margin-top:10px;padding:11px 13px;border-radius:12px;line-height:1.55;font-size:14px}
+.feedback.show{display:block}
+.feedback.good{background:#e1f8ee;color:#0c7553}
+.feedback.bad{background:#ffe7ef;color:#a23950}
+
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:14px;color:#677c99}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px}
+
+footer{
+  text-align:center;
+  color:#eef6ff;
+  padding:24px 0 0;
+  font-size:13px;
+  text-shadow:0 1px 3px rgba(45,55,132,.26)
+}
+
+@media(max-width:980px){
+  .hero:before{left:28px;top:28px;width:115px;height:165px;font-size:58px}
+  .hero:after{right:20px;top:80px;width:310px;height:160px;font-size:30px}
+  .hero h1,.hero p,.badges{margin-left:145px;max-width:390px}
+  .grid{grid-template-columns:1fr}
+  .nav{grid-template-columns:repeat(3,1fr)}
+  .options{grid-template-columns:1fr}
+}
+@media(max-width:650px){
+  .app{padding:12px 10px 36px}
+  .hero{padding:22px 18px;min-height:390px;border-radius:24px}
+  .hero:before{left:18px;top:18px;width:92px;height:132px;font-size:46px;border-radius:22px}
+  .hero:after{right:-10px;top:28px;width:245px;height:125px;font-size:23px}
+  .hero h1{margin:160px 0 0;font-size:44px;letter-spacing:-2px;max-width:none}
+  .hero p,.badges{margin-left:0;max-width:none}
+  .card{padding:16px;border-radius:22px}
+  .nav{grid-template-columns:1fr 1fr}
+  .nav button{font-size:13px;padding:12px 7px}
+  .statrow{gap:6px}
+  .stat{padding:10px 5px}
+  .stat b{font-size:19px}
+  .summaryGrid{grid-template-columns:1fr 1fr}
+  .inlineGrid{grid-template-columns:1fr}
+}
+.stageRow{display:grid;grid-template-columns:1.4fr .6fr;gap:18px;margin-bottom:18px}
+.stageCard{padding:16px}
+.stageCard h3{margin-bottom:12px}
+.stageView{position:relative;height:clamp(340px,46vw,500px);border-radius:22px;overflow:hidden;border:1px solid rgba(255,255,255,.92);background:linear-gradient(160deg,rgba(255,255,255,.62),rgba(176,208,255,.5) 55%,rgba(222,190,255,.55));box-shadow:inset 0 0 50px rgba(255,255,255,.45)}
+.stageView canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab;outline:none}
+.stageView canvas:active{cursor:grabbing}
+.stageBar{position:absolute;top:12px;left:12px;display:flex;gap:8px;flex-wrap:wrap}
+.glassBtn{border:1px solid rgba(255,255,255,.92);background:rgba(255,255,255,.58);backdrop-filter:blur(14px);color:#284c87;font-weight:800;font-size:13px;padding:8px 12px;border-radius:14px;cursor:pointer;box-shadow:0 8px 18px rgba(40,50,140,.16)}
+.glassBtn:hover{background:rgba(255,255,255,.85);transform:translateY(-1px)}
+.handBtn{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 14px 8px;border:1px solid rgba(255,255,255,.95);border-radius:22px;background:rgba(255,255,255,.6);backdrop-filter:blur(16px);box-shadow:0 14px 28px rgba(40,50,140,.24);cursor:pointer;color:#284c87;font-weight:900;font-size:12px}
+.handBtn:hover{background:rgba(255,255,255,.88)}
+.handBtn .hand{display:block;font-size:46px;line-height:1;transform-origin:50% 90%}
+.handBtn.throwing .hand{animation:throwHand .9s ease-in-out}
+@keyframes throwHand{
+  0%{transform:none}
+  20%{transform:translate(-6px,6px) rotate(-16deg)}
+  40%{transform:translate(6px,-8px) rotate(16deg)}
+  60%{transform:translate(-6px,6px) rotate(-16deg)}
+  70%{transform:translate(16px,38px) rotate(26deg)}
+  100%{transform:none}
+}
+.hsLayer{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.hs{position:absolute;left:0;top:0;width:34px;height:34px;padding:0;border-radius:50%;border:2px solid #fff;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-weight:900;font-size:14px;display:grid;place-items:center;cursor:pointer;pointer-events:auto;box-shadow:0 8px 18px rgba(108,37,197,.42);transition:none}
+.hs:after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(255,67,198,.65);animation:hsPulse 1.8s ease-out infinite;pointer-events:none}
+.hs.on{background:linear-gradient(135deg,var(--orange),var(--pink))}
+@keyframes hsPulse{from{transform:scale(.7);opacity:1}to{transform:scale(1.7);opacity:0}}
+.hsCard{position:absolute;left:12px;bottom:12px;max-width:min(390px,calc(100% - 24px));display:none;gap:12px;align-items:flex-start;padding:14px 14px 14px 16px;border-radius:20px;background:rgba(255,255,255,.8);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.95);border-left:6px solid var(--pink);box-shadow:var(--shadow)}
+.hsCard.show{display:flex;animation:cardPop .4s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes cardPop{from{opacity:0;transform:translateY(18px) scale(.94)}to{opacity:1;transform:none}}
+.hsCard b{display:block;color:#1b4382;font-size:15px;margin-bottom:4px}
+.hsCard p{margin:0;font-size:13.5px;line-height:1.62;color:#4a5e80}
+.hsCard .x{flex:none;width:26px;height:26px;padding:0;border:0;border-radius:50%;background:rgba(40,76,135,.1);color:#284c87;font-weight:900;cursor:pointer}
+.hsTag{flex:none;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px}
+.infoCard h3{margin-bottom:6px}
+.resBadge{margin:14px 0 4px;padding:14px;border-radius:18px;text-align:center;font-weight:900;font-size:17px;color:#1b4382;background:linear-gradient(135deg,rgba(255,67,198,.14),rgba(32,216,255,.18));border:1px solid rgba(255,255,255,.95)}
+.resBadge.pop{animation:cardPop .45s cubic-bezier(.2,.9,.3,1.3)}
+.hsChips{display:grid;gap:8px;margin:12px 0}
+.chip{display:flex;gap:10px;align-items:center;text-align:left;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.92);background:rgba(255,255,255,.62);color:#284c87;font-weight:800;cursor:pointer}
+.chip i{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:12px;color:#fff;background:linear-gradient(135deg,var(--pink),var(--purple))}
+.chip:hover{background:rgba(255,255,255,.9)}
+.chip.on{color:#fff;background:linear-gradient(135deg,var(--pink),var(--purple))}
+.chip.on i{background:rgba(255,255,255,.28)}
+.tips{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:7px;font-size:13px;line-height:1.5;color:#5a6d8c}
+@media(max-width:860px){
+  .stageRow{grid-template-columns:1fr}
+  .stageView{height:clamp(320px,62vw,460px)}
+}
+.camDock{position:fixed;right:16px;bottom:16px;z-index:50;width:min(260px,calc(100vw - 32px));padding:12px;border-radius:22px;background:rgba(255,255,255,.78);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.95);box-shadow:var(--shadow);animation:cardPop .4s cubic-bezier(.2,.9,.3,1.2)}
+.camDock[hidden]{display:none}
+.camHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;color:#1b4382;font-size:13px}
+.camHead .x{width:26px;height:26px;padding:0;border:0;border-radius:50%;background:rgba(40,76,135,.1);color:#284c87;font-weight:900;cursor:pointer}
+.camView{position:relative;aspect-ratio:4/3;border-radius:16px;overflow:hidden;background:#12204a}
+.camView video,.camView canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.camEmoji{position:absolute;right:8px;bottom:6px;font-size:34px;line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.4))}
+.camEmoji.flash{animation:cardPop .5s cubic-bezier(.2,.9,.3,1.4)}
+.camStatus{margin-top:8px;font-size:13px;font-weight:800;color:#284c87}
+.camHelp{margin-top:4px;font-size:12px;line-height:1.5;color:#5a6d8c}
+</style>
+</head>
+<body>
+<div class="app">
+  <section class="hero">
+    <h1>PROBABILITY<br><span style="color:#ffd4f2">UX / UI LAB</span></h1>
+    <p>INTERACTIVE LEARNING • ม.3 — สำรวจ Sample Space กำหนดเหตุการณ์ ทดลองสุ่ม และวิเคราะห์ความน่าจะเป็นผ่านอินเทอร์เฟซแบบทันสมัย</p>
+    <div class="badges">
+      <span class="badge">📊 Slider แบบ Real-time</span>
+      <span class="badge">🎲 การทดลองสุ่ม</span>
+      <span class="badge">🔴🔵🟢🟡 ลูกบอล 4 สี</span>
+      <span class="badge">✅ แบบทดสอบ 10 ข้อ</span>
+    </div>
+  </section>
+
+  <nav class="nav">
+    <button class="tab active" data-target="lab1">① พื้นฐาน</button>
+    <button class="tab" data-target="lab2">② ลูกเต๋า</button>
+    <button class="tab" data-target="lab3">③ ลูกบอล 4 สี</button>
+    <button class="tab" data-target="lab4">④ โยนเหรียญ</button>
+    <button class="tab" data-target="lab5">⑤ สุ่มบัตร</button>
+    <button class="tab" data-target="quiz">⑥ แบบทดสอบ</button>
+  </nav>
+
+  <section id="lab1" class="panel active">
+    <div class="grid">
+      <div class="card">
+        <h2>① สำรวจความน่าจะเป็นพื้นฐาน</h2>
+        <p class="note">ปรับจำนวนผลลัพธ์ทั้งหมดและจำนวนผลลัพธ์ที่เราสนใจ แล้วสังเกตว่าค่าความน่าจะเป็นเปลี่ยนอย่างไร</p>
+        <div class="control">
+          <label><span>จำนวนผลลัพธ์ทั้งหมด</span><strong id="totalVal">10</strong></label>
+          <input id="totalSlider" type="range" min="2" max="30" value="10">
+        </div>
+        <div class="control">
+          <label><span>จำนวนผลลัพธ์ที่พอใจ</span><strong id="favVal">3</strong></label>
+          <input id="favSlider" type="range" min="0" max="10" value="3">
+        </div>
+        <div class="formula">P(E) = จำนวนผลลัพธ์ที่พอใจ ÷ จำนวนผลลัพธ์ทั้งหมด</div>
+        <div class="meter"><div id="probMeter"></div></div>
+      </div>
+      <div class="card bigprob">
+        <div>
+          <div style="text-align:center;font-weight:800;color:var(--muted)">ค่าความน่าจะเป็น</div>
+          <div id="probValue" class="prob-value">0.30</div>
+          <div id="probPercent" style="text-align:center;font-size:22px;font-weight:900">30%</div>
+          <p id="probMeaning" class="note" style="text-align:center;margin-bottom:0">เหตุการณ์มีโอกาสเกิดค่อนข้างน้อย</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="lab2" class="panel">
+    <div class="grid">
+      <div class="card">
+        <h2>② ทดลองทอยลูกเต๋าพร้อมกัน</h2>
+        <p class="note">เลือกจำนวนลูกเต๋าที่ต้องการทอยพร้อมกันได้ตั้งแต่ 1–4 ลูก และกำหนดจำนวนรอบการทดลองเพื่อศึกษาความน่าจะเป็นของ “ผลรวม”</p>
+
+        <div class="control">
+          <label><span>จำนวนลูกเต๋าที่ทอยพร้อมกัน</span><strong id="diceCountVal">2 ลูก</strong></label>
+          <input id="diceCountSlider" type="range" min="1" max="4" value="2">
+        </div>
+
+        <div class="control">
+          <label><span>กำหนดเหตุการณ์ที่สนใจ</span></label>
+          <select id="diceEventType" class="selectbox">
+            <option value="sum_eq">ผลรวมเท่ากับ</option>
+            <option value="sum_ge" selected>ผลรวมมากกว่าหรือเท่ากับ</option>
+            <option value="sum_le">ผลรวมน้อยกว่าหรือเท่ากับ</option>
+            <option value="sum_even">ผลรวมเป็นเลขคู่</option>
+            <option value="sum_odd">ผลรวมเป็นเลขคี่</option>
+            <option value="atleast6">มีแต้ม 6 อย่างน้อย 1 ลูก</option>
+            <option value="all_same">ลูกเต๋าทุกลูกออกแต้มเหมือนกัน</option>
+          </select>
+        </div>
+
+        <div class="control" id="diceEventValueWrap">
+          <label><span>กำหนดค่าของเหตุการณ์</span><strong id="diceEventValueLabel">7</strong></label>
+          <input id="diceEventValue" type="range" min="2" max="12" value="7">
+        </div>
+
+        <div id="diceEventDescription" class="sample-space" style="margin-top:8px">
+          <h4>เหตุการณ์ E ที่กำลังศึกษา</h4>
+          <div id="diceEventText" style="font-weight:900"></div>
+        </div>
+
+        <div class="control">
+          <label><span>จำนวนรอบที่ทดลองอัตโนมัติ</span><strong id="trialVal">50</strong></label>
+          <input id="trialSlider" type="range" min="10" max="500" step="10" value="50">
+        </div>
+
+        <button class="primary" id="rollMany">🎲 ทดลองตามจำนวนรอบ</button>
+        <div style="height:8px"></div>
+        <button class="secondary" id="rollOne" style="width:100%">🤚 ทอย 1 รอบ (มือโยน)</button>
+
+        <div id="diceFacesWrap" style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;min-height:180px;align-items:center"></div>
+
+        <div class="statrow">
+          <div class="stat"><small>ผลรวมล่าสุด</small><b id="latestSum">—</b></div>
+          <div class="stat"><small>เข้าเงื่อนไข</small><b id="diceSuccessCount">0</b></div>
+          <div class="stat"><small>จำนวนรอบ</small><b id="diceN">0</b></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>ความถี่ของผลรวม</h3>
+        <div id="diceChart" class="chart"></div>
+
+        <div class="sample-space">
+          <h4>Sample Space (ปริภูมิตัวอย่าง) ของการทอยลูกเต๋าพร้อมกัน</h4>
+          <div id="diceSampleNotation" style="font-weight:900;margin-bottom:10px"></div>
+          <div id="diceSampleSpace" class="sample-set"></div>
+          <div id="diceSampleCaption" class="sample-caption"></div>
+        </div>
+
+        <p class="note">เมื่อทอยลูกเต๋า n ลูก จำนวนผลลัพธ์แบบเรียงลำดับทั้งหมดคือ 6ⁿ เช่น 2 ลูกมี 36 ผลลัพธ์ และ 4 ลูกมี 1,296 ผลลัพธ์</p>
+        <button class="secondary" id="resetDice">ล้างผลทดลอง</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="lab3" class="panel">
+    <div class="grid">
+      <div class="card">
+        <h2>③ ทดลองหยิบลูกบอล 4 สี</h2>
+        <p class="note">ปรับจำนวนลูกบอลแต่ละสี เลือกสีเป้าหมายที่ต้องการศึกษา และกำหนดจำนวนลูกบอลที่จะสุ่มหยิบได้เอง</p>
+
+        <div class="control">
+          <label><span>🔴 ลูกบอลสีแดง</span><strong id="redVal">4</strong></label>
+          <input id="redSlider" type="range" min="0" max="15" value="4">
+        </div>
+        <div class="control">
+          <label><span>🔵 ลูกบอลสีน้ำเงิน</span><strong id="blueVal">5</strong></label>
+          <input id="blueSlider" type="range" min="0" max="15" value="5">
+        </div>
+        <div class="control">
+          <label><span>🟢 ลูกบอลสีเขียว</span><strong id="greenVal">3</strong></label>
+          <input id="greenSlider" type="range" min="0" max="15" value="3">
+        </div>
+        <div class="control">
+          <label><span>🟡 ลูกบอลสีเหลือง</span><strong id="yellowVal">2</strong></label>
+          <input id="yellowSlider" type="range" min="0" max="15" value="2">
+        </div>
+
+        <div class="inlineGrid" style="margin-top:12px">
+          <div>
+            <label style="font-weight:800;display:block;margin-bottom:8px">เลือกสีที่ต้องการหาความน่าจะเป็น</label>
+            <select id="targetColor" class="selectbox">
+              <option value="red">สีแดง</option>
+              <option value="blue">สีน้ำเงิน</option>
+              <option value="green">สีเขียว</option>
+              <option value="yellow">สีเหลือง</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-weight:800;display:block;margin-bottom:8px">จำนวนลูกบอลที่ต้องการสุ่มหยิบ</label>
+            <input id="drawCount" class="numBox" type="number" min="1" value="3">
+          </div>
+        </div>
+
+        <div id="ballBag" class="ballbag" style="margin-top:16px"></div>
+        <div class="legend">
+          <span><i class="red"></i>แดง</span>
+          <span><i class="blue"></i>น้ำเงิน</span>
+          <span><i class="green"></i>เขียว</span>
+          <span><i class="yellow"></i>เหลือง</span>
+        </div>
+
+        <div class="sample-space">
+          <h4>Sample Space (ปริภูมิตัวอย่าง) ของการหยิบลูกบอล 1 ลูก</h4>
+          <div id="ballSampleNotation" style="font-weight:900;margin-bottom:10px"></div>
+          <div id="ballSampleSpace" class="sample-set"></div>
+          <div id="ballSampleCaption" class="sample-caption"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>ผลลัพธ์</h3>
+        <div class="bigprob" style="min-height:190px">
+          <div>
+            <div id="probTitle" style="text-align:center;font-weight:800;color:var(--muted)">P(หยิบได้สีแดง)</div>
+            <div id="ballProb" class="prob-value">0.29</div>
+            <div id="ballPercent" style="text-align:center;font-weight:900;font-size:22px">29%</div>
+          </div>
+        </div>
+
+        <p id="ballExplain" class="note" style="margin-top:12px"></p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+          <button id="drawBallOne" class="secondary">🤚 สุ่มหยิบ 1 ลูก (มือโยน)</button>
+          <button id="drawBallMany" class="primary">🎯 สุ่มหยิบตามจำนวนที่กำหนด</button>
+        </div>
+
+        <h3 style="margin-top:16px">ผลการสุ่ม</h3>
+        <div id="drawnResult" class="drawn">ยังไม่ได้สุ่ม</div>
+
+        <div class="summaryGrid">
+          <div class="summaryItem">🔴 แดง<b id="sumRed">0</b></div>
+          <div class="summaryItem">🔵 น้ำเงิน<b id="sumBlue">0</b></div>
+          <div class="summaryItem">🟢 เขียว<b id="sumGreen">0</b></div>
+          <div class="summaryItem">🟡 เหลือง<b id="sumYellow">0</b></div>
+        </div>
+
+        <div style="margin-top:12px">
+          <button id="resetDraw" class="secondary" style="width:100%">ล้างผลการสุ่ม</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section id="lab4" class="panel">
+    <div class="grid">
+      <div class="card">
+        <h2>④ ทดลองโยนเหรียญพร้อมกัน</h2>
+        <p class="note">เลือกจำนวนเหรียญที่ต้องการโยนพร้อมกัน 1, 2 หรือ 3 เหรียญ แล้วกำหนดจำนวนรอบการทดลอง ระบบจะแสดงผลแต่ละรอบและสรุปจำนวนหัว/ก้อย</p>
+
+        <div class="control">
+          <label><span>จำนวนเหรียญที่โยนพร้อมกัน</span><strong id="coinCountVal">2 เหรียญ</strong></label>
+          <input id="coinCountSlider" type="range" min="1" max="3" step="1" value="2">
+        </div>
+
+        <div class="control">
+          <label><span>จำนวนรอบที่ต้องการทดลอง</span><strong id="coinTrialVal">20</strong></label>
+          <input id="coinTrialSlider" type="range" min="1" max="300" step="1" value="20">
+        </div>
+
+        <button id="flipCoinOne" class="secondary" style="width:100%;margin-bottom:8px">🤚 โยน 1 รอบ (มือโยน)</button>
+        <button id="flipCoinMany" class="primary">🪙 โยนตามจำนวนรอบที่กำหนด</button>
+
+        <div id="coinFaces" style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:22px 0"></div>
+
+        <div class="statrow">
+          <div class="stat"><small>หัวรวม</small><b id="coinHeads">0</b></div>
+          <div class="stat"><small>ก้อยรวม</small><b id="coinTails">0</b></div>
+          <div class="stat"><small>จำนวนรอบ</small><b id="coinTotal">0</b></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>ผลการทดลอง</h3>
+        <div class="bigprob" style="min-height:180px">
+          <div style="text-align:center">
+            <div style="font-weight:800;color:var(--muted)">สัดส่วน “หัว” จากเหรียญทั้งหมดที่โยน</div>
+            <div id="coinHeadProb" class="prob-value">0.00</div>
+            <div id="coinHeadPercent" style="font-size:22px;font-weight:900">0%</div>
+          </div>
+        </div>
+
+        <div class="summaryGrid" style="grid-template-columns:1fr 1fr">
+          <div class="summaryItem">หัว<br><b id="coinHeadPct">0%</b></div>
+          <div class="summaryItem">ก้อย<br><b id="coinTailPct">0%</b></div>
+        </div>
+
+        <h3 style="margin-top:16px">รูปแบบผลลัพธ์แต่ละรอบ</h3>
+        <div id="coinPatterns" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"></div>
+
+        <div class="sample-space">
+          <h4>Sample Space (ปริภูมิตัวอย่าง)</h4>
+          <div id="coinSampleNotation" style="font-weight:900;margin-bottom:10px"></div>
+          <div id="coinSampleSpace" class="sample-set"></div>
+          <div id="coinSampleCaption" class="sample-caption"></div>
+        </div>
+
+        <p class="note" style="margin-top:14px">Sample Space คือเซตของผลลัพธ์ทั้งหมดที่เป็นไปได้จากการทดลองสุ่มหนึ่งครั้ง โดย H = หัว และ T = ก้อย</p>
+        <button id="resetCoin" class="secondary" style="width:100%">ล้างผลการทดลอง</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="lab5" class="panel">
+    <div class="grid">
+      <div class="card">
+        <h2>⑤ ทดลองสุ่มหยิบบัตร</h2>
+        <p class="note">ชุดบัตรมีหมายเลข 1–10 เลือกเงื่อนไขที่สนใจ แล้วกำหนดจำนวนครั้งในการสุ่ม ระบบจะสุ่มแบบ “ใส่คืน” เพื่อให้แต่ละครั้งมีโอกาสเท่าเดิม</p>
+
+        <div class="control">
+          <label><span>เงื่อนไขที่ต้องการศึกษา</span></label>
+          <select id="cardCondition" class="selectbox">
+            <option value="even">ได้เลขคู่</option>
+            <option value="odd">ได้เลขคี่</option>
+            <option value="gt5">ได้เลขมากกว่า 5</option>
+            <option value="prime">ได้จำนวนเฉพาะ</option>
+          </select>
+        </div>
+
+        <div class="control">
+          <label><span>จำนวนครั้งที่ต้องการสุ่ม</span><strong id="cardTrialVal">20</strong></label>
+          <input id="cardTrialSlider" type="range" min="1" max="500" value="20">
+        </div>
+
+        <div id="cardDeck" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:16px 0"></div>
+
+        <div class="sample-space">
+          <h4>Sample Space (ปริภูมิตัวอย่าง) ของการสุ่มบัตร</h4>
+          <div id="cardSampleNotation" style="font-weight:900;margin-bottom:10px">S = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}</div>
+          <div id="cardSampleSpace" class="sample-set"></div>
+          <div id="cardSampleCaption" class="sample-caption">จำนวนสมาชิก n(S) = 10</div>
+        </div>
+
+        <button id="drawCardOne" class="secondary" style="width:100%;margin-bottom:8px">🤚 สุ่ม 1 ใบ (มือโยน)</button>
+        <button id="drawCardMany" class="primary">🃏 สุ่มตามจำนวนที่กำหนด</button>
+      </div>
+
+      <div class="card">
+        <h3>ผลการสุ่มบัตร</h3>
+        <div class="bigprob" style="min-height:170px">
+          <div style="text-align:center">
+            <div id="cardTheoryTitle" style="font-weight:800;color:var(--muted)">P(ได้เลขคู่)</div>
+            <div id="cardTheoryProb" class="prob-value">0.50</div>
+            <div id="cardTheoryPercent" style="font-size:22px;font-weight:900">50%</div>
+          </div>
+        </div>
+
+        <div style="margin-top:14px;padding:14px;border-radius:16px;background:#f8fbff;border:1px solid var(--line)">
+          <div style="font-weight:800">บัตรล่าสุด</div>
+          <div id="lastCard" style="font-size:58px;font-weight:900;color:var(--primary);text-align:center">—</div>
+        </div>
+
+        <div class="statrow">
+          <div class="stat"><small>ตรงเงื่อนไข</small><b id="cardSuccess">0</b></div>
+          <div class="stat"><small>ทดลองทั้งหมด</small><b id="cardTotal">0</b></div>
+          <div class="stat"><small>ผลทดลอง</small><b id="cardExperimental">0%</b></div>
+        </div>
+
+        <p id="cardExplain" class="note"></p>
+        <button id="resetCard" class="secondary" style="width:100%">ล้างผลการทดลอง</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="quiz" class="panel">
+    <div class="card">
+      <div class="quizHead">
+        <div>
+          <h2 style="margin-bottom:4px">⑥ แบบทดสอบท้ายกิจกรรม</h2>
+          <div class="note">เลือกคำตอบ ระบบจะแสดงผลและเฉลยทันที</div>
+        </div>
+        <div id="score" class="score">คะแนน 0/10</div>
+      </div>
+      <div id="quizBox"></div>
+      <button id="resetQuiz" class="secondary">เริ่มทำใหม่</button>
+    </div>
+  </section>
+
+  <footer>สื่อการเรียนรู้เรื่อง “ความน่าจะเป็น” • ระดับชั้น ม.3 • ทำงานได้แบบออฟไลน์</footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+$$('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    $$('.tab').forEach(b=>b.classList.remove('active'));
+    $$('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    $('#'+btn.dataset.target).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+});
+
+// LAB 1
+const totalSlider=$('#totalSlider'), favSlider=$('#favSlider');
+function updateBase(){
+  const total=+totalSlider.value;
+  favSlider.max=total;
+  if(+favSlider.value>total) favSlider.value=total;
+  const fav=+favSlider.value, p=fav/total;
+  $('#totalVal').textContent=total; $('#favVal').textContent=fav;
+  $('#probValue').textContent=p.toFixed(2);
+  $('#probPercent').textContent=(p*100).toFixed(p*100%1?1:0)+'%';
+  $('#probMeter').style.width=(p*100)+'%';
+  let m='เหตุการณ์เป็นไปไม่ได้';
+  if(p===1)m='เหตุการณ์เกิดขึ้นแน่นอน';
+  else if(p>=.75)m='เหตุการณ์มีโอกาสเกิดสูงมาก';
+  else if(p>.5)m='เหตุการณ์มีโอกาสเกิดมากกว่าครึ่ง';
+  else if(p===.5)m='มีโอกาสเกิดและไม่เกิดเท่ากัน';
+  else if(p>0)m='เหตุการณ์มีโอกาสเกิดค่อนข้างน้อย';
+  $('#probMeaning').textContent=m;
+}
+totalSlider.oninput=updateBase;favSlider.oninput=updateBase;updateBase();
+
+// LAB 2 - MULTI DICE 1-4 + CUSTOM EVENTS
+let diceTotal=0, diceSuccess=0, sumCounts={};
+const faces=['⚀','⚁','⚂','⚃','⚄','⚅'];
+
+function diceCount(){ return +$('#diceCountSlider').value; }
+function minSum(){ return diceCount(); }
+function maxSum(){ return diceCount()*6; }
+function eventType(){ return $('#diceEventType').value; }
+function eventValue(){ return +$('#diceEventValue').value; }
+
+function eventLabel(){
+  const v=eventValue();
+  const map={
+    sum_eq:`ผลรวม = ${v}`,
+    sum_ge:`ผลรวม ≥ ${v}`,
+    sum_le:`ผลรวม ≤ ${v}`,
+    sum_even:'ผลรวมเป็นเลขคู่',
+    sum_odd:'ผลรวมเป็นเลขคี่',
+    atleast6:'มีแต้ม 6 อย่างน้อย 1 ลูก',
+    all_same:'ลูกเต๋าทุกลูกออกแต้มเหมือนกัน'
+  };
+  return map[eventType()];
+}
+
+function matchesEvent(arr){
+  const sum=arr.reduce((a,b)=>a+b,0);
+  const t=eventType(), v=eventValue();
+  if(t==='sum_eq') return sum===v;
+  if(t==='sum_ge') return sum>=v;
+  if(t==='sum_le') return sum<=v;
+  if(t==='sum_even') return sum%2===0;
+  if(t==='sum_odd') return sum%2===1;
+  if(t==='atleast6') return arr.includes(6);
+  if(t==='all_same') return arr.every(x=>x===arr[0]);
+  return false;
+}
+
+function resetSumCounts(){
+  sumCounts={};
+  for(let s=minSum(); s<=maxSum(); s++) sumCounts[s]=0;
+}
+
+function updateEventControls(){
+  const slider=$('#diceEventValue');
+  slider.min=minSum();
+  slider.max=maxSum();
+
+  if(+slider.value < minSum() || +slider.value > maxSum()){
+    slider.value=Math.ceil((minSum()+maxSum())/2);
+  }
+
+  const needsValue=['sum_eq','sum_ge','sum_le'].includes(eventType());
+  $('#diceEventValueWrap').style.display=needsValue?'block':'none';
+  $('#diceEventValueLabel').textContent=slider.value;
+  $('#diceEventText').textContent='E = {'+eventLabel()+'}';
+}
+
+function renderDiceFaces(values=null){
+  const wrap=$('#diceFacesWrap'); wrap.innerHTML='';
+  const vals=values || Array(diceCount()).fill(1);
+  vals.forEach(v=>{
+    const d=document.createElement('div');
+    d.className='die';
+    d.style.width='95px';
+    d.style.height='95px';
+    d.style.fontSize='58px';
+    d.textContent=faces[v-1];
+    wrap.append(d);
+  });
+}
+
+function enumerateOutcomes(n){
+  const out=[];
+  function rec(arr){
+    if(arr.length===n){out.push([...arr]);return;}
+    for(let i=1;i<=6;i++){arr.push(i);rec(arr);arr.pop();}
+  }
+  rec([]);
+  return out;
+}
+
+function renderDiceSampleSpace(lastValues=null){
+  const n=diceCount();
+  const outcomes=enumerateOutcomes(n);
+  const box=$('#diceSampleSpace');
+  box.innerHTML='';
+
+  const displayLimit = n<=2 ? outcomes.length : 36;
+  outcomes.slice(0,displayLimit).forEach(arr=>{
+    const code='('+arr.join(',')+')';
+    const item=document.createElement('div');
+    const isActive=lastValues && arr.join(',')===lastValues.join(',');
+    const isEvent=matchesEvent(arr);
+    item.className='sample-item'+(isActive?' active':'')+(isEvent?' event':'');
+    item.textContent=code;
+    box.append(item);
+  });
+
+  const fullNotation = n<=2
+    ? 'S = {'+outcomes.map(a=>'('+a.join(',')+')').join(', ')+'}'
+    : `S = {(d₁,d₂${n>=3?',d₃':''}${n===4?',d₄':''}) | dᵢ ∈ {1,2,3,4,5,6}}`;
+
+  $('#diceSampleNotation').textContent=fullNotation;
+
+  const successOutcomes=outcomes.filter(matchesEvent).length;
+  const p=successOutcomes/outcomes.length;
+
+  $('#diceSampleCaption').textContent=
+    `n(S) = 6^${n} = ${outcomes.length} • เหตุการณ์ E: ${eventLabel()} • n(E) = ${successOutcomes} • P(E) = ${successOutcomes}/${outcomes.length} = ${p.toFixed(4)}` +
+    (n>=3 ? ` • แสดงตัวอย่าง ${displayLimit} ผลลัพธ์แรกจากทั้งหมด ${outcomes.length}` : '') +
+    (lastValues ? ` • ผลล่าสุด = (${lastValues.join(',')}) ผลรวม ${lastValues.reduce((a,b)=>a+b,0)}` : '');
+}
+
+function updateDiceChart(){
+  const chart=$('#diceChart'); chart.innerHTML='';
+  const values=Object.values(sumCounts);
+  const max=Math.max(1,...values);
+
+  Object.entries(sumCounts).forEach(([sum,c])=>{
+    const item=document.createElement('div'); item.className='barItem';
+    const small=document.createElement('small'); small.textContent=c;
+    const bar=document.createElement('div'); bar.className='bar'; bar.style.height=(c/max*170)+'px';
+    const span=document.createElement('span'); span.textContent=sum;
+    item.append(small,bar,span); chart.append(item);
+  });
+}
+
+function updateDiceUI(lastValues=null){
+  $('#diceN').textContent=diceTotal;
+  $('#diceSuccessCount').textContent=diceSuccess;
+  $('#latestSum').textContent=lastValues ? lastValues.reduce((a,b)=>a+b,0) : '—';
+  updateEventControls();
+  renderDiceFaces(lastValues);
+  updateDiceChart();
+  renderDiceSampleSpace(lastValues);
+}
+
+function rollDiceRound(){
+  const vals=[];
+  for(let i=0;i<diceCount();i++) vals.push(Math.floor(Math.random()*6)+1);
+  const sum=vals.reduce((a,b)=>a+b,0);
+  diceTotal++;
+  sumCounts[sum]=(sumCounts[sum]||0)+1;
+  if(matchesEvent(vals)) diceSuccess++;
+  return vals;
+}
+
+function recalcSuccessFromHistoryImpossible(){
+  // Sum-only events can be recomputed from the sum histogram.
+  // Other events cannot be reconstructed from sumCounts, so reset trials.
+  if(['sum_eq','sum_ge','sum_le','sum_even','sum_odd'].includes(eventType())){
+    diceSuccess=0;
+    for(const [sum,c] of Object.entries(sumCounts)){
+      const s=+sum;
+      let ok=false;
+      if(eventType()==='sum_eq') ok=s===eventValue();
+      else if(eventType()==='sum_ge') ok=s>=eventValue();
+      else if(eventType()==='sum_le') ok=s<=eventValue();
+      else if(eventType()==='sum_even') ok=s%2===0;
+      else if(eventType()==='sum_odd') ok=s%2===1;
+      if(ok) diceSuccess+=c;
+    }
+  } else {
+    diceTotal=0; diceSuccess=0; resetSumCounts();
+  }
+}
+
+$('#diceCountSlider').oninput=e=>{
+  $('#diceCountVal').textContent=e.target.value+' ลูก';
+  diceTotal=0; diceSuccess=0;
+  resetSumCounts();
+  updateEventControls();
+  updateDiceUI();
+};
+
+$('#diceEventType').onchange=()=>{
+  updateEventControls();
+  recalcSuccessFromHistoryImpossible();
+  updateDiceUI();
+};
+
+$('#diceEventValue').oninput=e=>{
+  $('#diceEventValueLabel').textContent=e.target.value;
+  recalcSuccessFromHistoryImpossible();
+  updateDiceUI();
+};
+
+$('#trialSlider').oninput=e=>$('#trialVal').textContent=e.target.value;
+
+$('#rollOne').onclick=()=>{
+  const vals=rollDiceRound();
+  updateDiceUI(vals);
+};
+
+$('#rollMany').onclick=()=>{
+  const rounds=+$('#trialSlider').value;
+  let last=null;
+  for(let i=0;i<rounds;i++) last=rollDiceRound();
+  updateDiceUI(last);
+};
+
+$('#resetDice').onclick=()=>{
+  diceTotal=0; diceSuccess=0;
+  resetSumCounts();
+  updateDiceUI();
+};
+
+resetSumCounts();
+updateEventControls();
+updateDiceUI();
+
+// LAB 3 - 4 colors
+const colorMap = {
+  red:{label:'สีแดง', cls:'red'},
+  blue:{label:'สีน้ำเงิน', cls:'blue'},
+  green:{label:'สีเขียว', cls:'green'},
+  yellow:{label:'สีเหลือง', cls:'yellow'}
+};
+let drawSummary = {red:0, blue:0, green:0, yellow:0};
+
+function getBallCounts(){
+  return {
+    red:+$('#redSlider').value,
+    blue:+$('#blueSlider').value,
+    green:+$('#greenSlider').value,
+    yellow:+$('#yellowSlider').value,
+  };
+}
+
+function totalBalls(){
+  const c=getBallCounts();
+  return c.red+c.blue+c.green+c.yellow;
+}
+
+function buildBagArray(){
+  const c=getBallCounts();
+  let arr=[];
+  Object.keys(c).forEach(k=>{
+    for(let i=0;i<c[k];i++) arr.push(k);
+  });
+  return arr;
+}
+
+function updateDrawInputLimit(){
+  const total=totalBalls();
+  const input=$('#drawCount');
+  input.max = Math.max(1,total);
+  if(+input.value>total) input.value=total || 1;
+  if(+input.value<1) input.value=1;
+}
+
+function renderBallSampleSpace(lastColor=null){
+  const counts=getBallCounts();
+  const total=totalBalls();
+  const box=$('#ballSampleSpace');
+  if(!box) return;
+  box.innerHTML='';
+  const labels={red:'R',blue:'B',green:'G',yellow:'Y'};
+  const thai={red:'แดง',blue:'น้ำเงิน',green:'เขียว',yellow:'เหลือง'};
+  let notation=[];
+  ['red','blue','green','yellow'].forEach(color=>{
+    for(let i=1;i<=counts[color];i++){
+      const code=labels[color]+i;
+      notation.push(code);
+      const item=document.createElement('div');
+      item.className='sample-item '+(color===lastColor?'active ':'');
+      item.textContent=code;
+      item.title=thai[color]+'ลูกที่ '+i;
+      box.append(item);
+    }
+  });
+  $('#ballSampleNotation').textContent='S = {'+notation.join(', ')+'}';
+  $('#ballSampleCaption').textContent=`n(S) = ${total} • แต่ละลูกถือเป็น 1 ผลลัพธ์ที่เป็นไปได้` + (lastColor?` • ผลล่าสุดเป็น${thai[lastColor]}`:'');
+}
+
+function updateBallProbability(){
+  const counts=getBallCounts();
+  const total=totalBalls();
+  $('#redVal').textContent=counts.red;
+  $('#blueVal').textContent=counts.blue;
+  $('#greenVal').textContent=counts.green;
+  $('#yellowVal').textContent=counts.yellow;
+
+  const target=$('#targetColor').value;
+  const tCount=counts[target];
+  const p= total>0 ? tCount/total : 0;
+  $('#probTitle').textContent=`P(หยิบได้${colorMap[target].label})`;
+  $('#ballProb').textContent=p.toFixed(2);
+  $('#ballPercent').textContent=(p*100).toFixed(1).replace('.0','')+'%';
+  $('#ballExplain').textContent = total>0
+    ? `มีลูกบอลทั้งหมด ${total} ลูก โดย${colorMap[target].label}มี ${tCount} ลูก ดังนั้น P(${colorMap[target].label}) = ${tCount}/${total} = ${p.toFixed(2)}`
+    : 'กรุณากำหนดจำนวนลูกบอลอย่างน้อย 1 ลูก';
+
+  const bag=$('#ballBag');
+  bag.innerHTML='';
+  ['red','blue','green','yellow'].forEach(color=>{
+    for(let i=0;i<counts[color];i++){
+      const x=document.createElement('div');
+      x.className='ball '+color;
+      bag.append(x);
+    }
+  });
+
+  updateDrawInputLimit();
+  renderBallSampleSpace();
+}
+
+function showDrawSummary(){
+  $('#sumRed').textContent = drawSummary.red;
+  $('#sumBlue').textContent = drawSummary.blue;
+  $('#sumGreen').textContent = drawSummary.green;
+  $('#sumYellow').textContent = drawSummary.yellow;
+}
+
+function resetDrawSummary(){
+  drawSummary = {red:0, blue:0, green:0, yellow:0};
+  showDrawSummary();
+  $('#drawnResult').innerHTML='ยังไม่ได้สุ่ม';
+}
+
+function drawBalls(num){
+  const bag = buildBagArray();
+  const total = bag.length;
+  if(total===0){
+    $('#drawnResult').innerHTML='กรุณาใส่ลูกบอลอย่างน้อย 1 ลูก';
+    return;
+  }
+  const drawN = Math.min(Math.max(1, num), total);
+  let temp = [...bag];
+  let result = [];
+  for(let i=0;i<drawN;i++){
+    const idx = Math.floor(Math.random()*temp.length);
+    const picked = temp.splice(idx,1)[0]; // without replacement
+    result.push(picked);
+  }
+  result.forEach(c => drawSummary[c]++);
+  showDrawSummary();
+
+  const box = $('#drawnResult');
+  box.innerHTML='';
+  result.forEach(c=>{
+    const tag = document.createElement('div');
+    tag.className='drawTag '+c;
+    tag.textContent=colorMap[c].label;
+    box.append(tag);
+  });
+  if(result.length) renderBallSampleSpace(result[result.length-1]);
+}
+
+$('#redSlider').oninput=updateBallProbability;
+$('#blueSlider').oninput=updateBallProbability;
+$('#greenSlider').oninput=updateBallProbability;
+$('#yellowSlider').oninput=updateBallProbability;
+$('#targetColor').onchange=updateBallProbability;
+$('#drawCount').oninput=updateDrawInputLimit;
+$('#drawBallOne').onclick=()=>drawBalls(1);
+$('#drawBallMany').onclick=()=>drawBalls(+$('#drawCount').value||1);
+$('#resetDraw').onclick=resetDrawSummary;
+
+updateBallProbability();
+resetDrawSummary();
+
+
+// LAB 4 - COIN
+let coinHeads=0, coinTails=0, coinRounds=0, coinPatternCounts={};
+
+function coinCount(){ return +$('#coinCountSlider').value; }
+
+function patternList(n){
+  const out=[];
+  const total=2**n;
+  for(let i=0;i<total;i++){
+    let s='';
+    for(let b=n-1;b>=0;b--) s += ((i>>b)&1) ? 'T' : 'H';
+    out.push(s);
+  }
+  return out;
+}
+
+function resetPatternCounts(){
+  coinPatternCounts={};
+  patternList(coinCount()).forEach(p=>coinPatternCounts[p]=0);
+}
+
+function renderCoinFaces(lastPattern=null){
+  const box=$('#coinFaces');
+  box.innerHTML='';
+  const n=coinCount();
+  const pattern = lastPattern || 'H'.repeat(n);
+
+  for(let i=0;i<n;i++){
+    const face=document.createElement('div');
+    const isHead=pattern[i]==='H';
+    face.textContent=isHead?'หัว':'ก้อย';
+    face.style.cssText=`
+      width:110px;height:110px;border-radius:50%;display:grid;place-items:center;
+      background:${isHead?'linear-gradient(135deg,#ffe18a,#e8ad25)':'linear-gradient(135deg,#d6e2f4,#8ea6c7)'};
+      border:7px solid ${isHead?'#f5c84e':'#b7c7dc'};
+      box-shadow:0 12px 22px #0002;font-size:28px;font-weight:900;
+      color:${isHead?'#755000':'#344b67'};transition:.2s`;
+    box.append(face);
+  }
+}
+
+function renderCoinPatterns(){
+  const box=$('#coinPatterns'); box.innerHTML='';
+  const totalPatterns=patternList(coinCount()).length;
+  patternList(coinCount()).forEach(p=>{
+    const c=coinPatternCounts[p]||0;
+    const pct=coinRounds ? (c/coinRounds*100).toFixed(1) : '0.0';
+    const pretty=p.replaceAll('H','ห').replaceAll('T','ก');
+    const item=document.createElement('div');
+    item.style.cssText='padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#f8fbff;font-weight:800';
+    item.innerHTML=`${pretty} <span style="float:right">${c} ครั้ง (${pct}%)</span>`;
+    box.append(item);
+  });
+}
+
+function renderCoinSampleSpace(lastPattern=null){
+  const n=coinCount();
+  const samples=patternList(n);
+  const box=$('#coinSampleSpace');
+  box.innerHTML='';
+
+  samples.forEach(p=>{
+    const item=document.createElement('div');
+    item.className='sample-item' + (p===lastPattern ? ' active' : '');
+    item.textContent=p;
+    box.append(item);
+  });
+
+  $('#coinSampleNotation').textContent='S = {' + samples.join(', ') + '}';
+  $('#coinSampleCaption').textContent=
+    `จำนวนผลลัพธ์ใน Sample Space = 2^${n} = ${samples.length} ผลลัพธ์` +
+    (lastPattern ? ` • ผลที่เกิดขึ้นล่าสุด = ${lastPattern}` : '');
+}
+
+function updateCoinUI(lastPattern=null){
+  const totalCoins=coinRounds*coinCount();
+  $('#coinHeads').textContent=coinHeads;
+  $('#coinTails').textContent=coinTails;
+  $('#coinTotal').textContent=coinRounds;
+
+  const hp=totalCoins?coinHeads/totalCoins:0;
+  const tp=totalCoins?coinTails/totalCoins:0;
+  $('#coinHeadProb').textContent=hp.toFixed(2);
+  $('#coinHeadPercent').textContent=(hp*100).toFixed(1).replace('.0','')+'%';
+  $('#coinHeadPct').textContent=(hp*100).toFixed(1).replace('.0','')+'%';
+  $('#coinTailPct').textContent=(tp*100).toFixed(1).replace('.0','')+'%';
+
+  renderCoinFaces(lastPattern);
+  renderCoinPatterns();
+  renderCoinSampleSpace(lastPattern);
+}
+
+function flipCoinRound(){
+  const n=coinCount();
+  let pattern='';
+  for(let i=0;i<n;i++){
+    const h=Math.random()<0.5;
+    pattern += h ? 'H' : 'T';
+    if(h) coinHeads++; else coinTails++;
+  }
+  coinRounds++;
+  coinPatternCounts[pattern]=(coinPatternCounts[pattern]||0)+1;
+  return pattern;
+}
+
+$('#coinCountSlider').oninput=e=>{
+  $('#coinCountVal').textContent=e.target.value+' เหรียญ';
+  coinHeads=0;coinTails=0;coinRounds=0;
+  resetPatternCounts();
+  updateCoinUI();
+};
+
+$('#coinTrialSlider').oninput=e=>$('#coinTrialVal').textContent=e.target.value;
+
+$('#flipCoinOne').onclick=()=>{
+  const last=flipCoinRound();
+  updateCoinUI(last);
+};
+
+$('#flipCoinMany').onclick=()=>{
+  const rounds=+$('#coinTrialSlider').value;
+  let last='';
+  for(let i=0;i<rounds;i++) last=flipCoinRound();
+  updateCoinUI(last);
+};
+
+$('#resetCoin').onclick=()=>{
+  coinHeads=0;coinTails=0;coinRounds=0;
+  resetPatternCounts();
+  updateCoinUI();
+};
+
+resetPatternCounts();
+updateCoinUI();
+
+// LAB 5 - CARDS 1-10
+let cardSuccess=0, cardTotal=0;
+const cardDeck=[1,2,3,4,5,6,7,8,9,10];
+
+function cardConditionInfo(){
+  const type=$('#cardCondition').value;
+  if(type==='even') return {label:'ได้เลขคู่', fn:n=>n%2===0, success:5};
+  if(type==='odd') return {label:'ได้เลขคี่', fn:n=>n%2===1, success:5};
+  if(type==='gt5') return {label:'ได้เลขมากกว่า 5', fn:n=>n>5, success:5};
+  return {label:'ได้จำนวนเฉพาะ', fn:n=>[2,3,5,7].includes(n), success:4};
+}
+function renderCardSampleSpace(last=null){
+  const box=$('#cardSampleSpace');
+  if(!box) return;
+  box.innerHTML='';
+  const info=cardConditionInfo();
+  cardDeck.forEach(n=>{
+    const item=document.createElement('div');
+    item.className='sample-item' + (n===last?' active':'') + (info.fn(n)?' event':'');
+    item.textContent=n;
+    box.append(item);
+  });
+  const eventVals=cardDeck.filter(info.fn);
+  $('#cardSampleCaption').textContent=`n(S) = 10 • เหตุการณ์ E = {${eventVals.join(', ')}} • n(E) = ${eventVals.length}` + (last!==null?` • ผลล่าสุด = ${last}`:'');
+}
+function renderCardDeck(){
+  const deck=$('#cardDeck'); deck.innerHTML='';
+  const info=cardConditionInfo();
+  cardDeck.forEach(n=>{
+    const d=document.createElement('div');
+    d.textContent=n;
+    d.style.cssText=`padding:14px 4px;text-align:center;border-radius:12px;font-weight:900;
+      background:${info.fn(n)?'#eaf2ff':'#fff'};border:2px solid ${info.fn(n)?'#6d93ef':'#dce7f3'};
+      box-shadow:0 4px 10px #0001`;
+    deck.append(d);
+  });
+  renderCardSampleSpace();
+}
+function updateCardTheory(){
+  const info=cardConditionInfo();
+  const p=info.success/10;
+  $('#cardTheoryTitle').textContent='P('+info.label+')';
+  $('#cardTheoryProb').textContent=p.toFixed(2);
+  $('#cardTheoryPercent').textContent=(p*100).toFixed(0)+'%';
+  $('#cardExplain').textContent=`มีบัตรทั้งหมด 10 ใบ และมีบัตรที่ตรงเงื่อนไข “${info.label}” จำนวน ${info.success} ใบ ดังนั้นความน่าจะเป็นทางทฤษฎี = ${info.success}/10 = ${p.toFixed(2)}`;
+  renderCardDeck();
+}
+function updateCardExperimental(last=null){
+  $('#cardSuccess').textContent=cardSuccess;
+  $('#cardTotal').textContent=cardTotal;
+  $('#cardExperimental').textContent=cardTotal?((cardSuccess/cardTotal)*100).toFixed(1)+'%':'0%';
+  if(last!==null) $('#lastCard').textContent=last;
+  renderCardSampleSpace(last);
+}
+function drawCard(){
+  const n=cardDeck[Math.floor(Math.random()*cardDeck.length)];
+  const info=cardConditionInfo();
+  cardTotal++;
+  if(info.fn(n))cardSuccess++;
+  updateCardExperimental(n);
+}
+$('#cardCondition').onchange=()=>{
+  cardSuccess=0;cardTotal=0;$('#lastCard').textContent='—';
+  updateCardTheory();updateCardExperimental();
+};
+$('#cardTrialSlider').oninput=e=>$('#cardTrialVal').textContent=e.target.value;
+$('#drawCardOne').onclick=drawCard;
+$('#drawCardMany').onclick=()=>{
+  const count=+$('#cardTrialSlider').value;
+  const info=cardConditionInfo();
+  let last=1;
+  for(let i=0;i<count;i++){
+    last=cardDeck[Math.floor(Math.random()*cardDeck.length)];
+    cardTotal++;
+    if(info.fn(last))cardSuccess++;
+  }
+  updateCardExperimental(last);
+};
+$('#resetCard').onclick=()=>{cardSuccess=0;cardTotal=0;$('#lastCard').textContent='—';updateCardExperimental()};
+updateCardTheory();updateCardExperimental();
+
+
+// QUIZ
+const questions=[
+  {q:'1) ถ้าทอยลูกเต๋ามาตรฐาน 1 ลูก ความน่าจะเป็นที่จะได้แต้ม 6 เท่ากับเท่าใด?',o:['1/2','1/3','1/6','1'],a:2,e:'ลูกเต๋ามี 6 ผลลัพธ์ที่เป็นไปได้เท่ากัน และมีเพียง 1 ผลลัพธ์ที่เป็นเลข 6 จึงได้ 1/6'},
+  {q:'2) โยนเหรียญเที่ยงตรง 1 เหรียญ 1 ครั้ง ความน่าจะเป็นที่จะออกหัวเท่ากับข้อใด?',o:['0','1/4','1/2','1'],a:2,e:'เหรียญมี 2 ผลลัพธ์ คือ หัวและก้อย จึงมีโอกาสออกหัว 1/2'},
+  {q:'3) ในถุงมีลูกบอลแดง 3 ลูก น้ำเงิน 2 ลูก หยิบ 1 ลูกแบบสุ่ม P(แดง) เท่ากับเท่าใด?',o:['2/5','3/5','3/2','1/5'],a:1,e:'มีลูกบอลทั้งหมด 5 ลูก และสีแดง 3 ลูก ดังนั้น P(แดง)=3/5'},
+  {q:'4) เหตุการณ์ที่มีความน่าจะเป็นเท่ากับ 0 หมายถึงอะไร?',o:['เกิดแน่นอน','มีโอกาสครึ่งหนึ่ง','เป็นไปไม่ได้','มีโอกาสสูง'],a:2,e:'ความน่าจะเป็น 0 หมายถึงเหตุการณ์นั้นไม่สามารถเกิดขึ้นได้ในเงื่อนไขที่กำหนด'},
+  {q:'5) เหตุการณ์ที่มีความน่าจะเป็นเท่ากับ 1 หมายถึงอะไร?',o:['เป็นไปไม่ได้','เกิดขึ้นแน่นอน','มีโอกาสน้อย','คาดเดาไม่ได้'],a:1,e:'ความน่าจะเป็น 1 หมายถึงเหตุการณ์นั้นเกิดขึ้นแน่นอน'},
+  {q:'6) ทอยลูกเต๋า 1 ลูก ความน่าจะเป็นที่จะได้แต้มมากกว่า 4 เท่ากับเท่าใด?',o:['1/6','2/6','4/6','5/6'],a:1,e:'แต้มที่มากกว่า 4 คือ 5 และ 6 มี 2 ผลลัพธ์จากทั้งหมด 6 จึงได้ 2/6 = 1/3'},
+  {q:'7) ถ้า P(A)=0.75 ข้อใดเขียนเป็นร้อยละได้ถูกต้อง?',o:['7.5%','25%','50%','75%'],a:3,e:'0.75 × 100 = 75%'},
+  {q:'8) ถ้าทดลองสุ่มจำนวนครั้งมากขึ้น โดยทั่วไปความถี่สัมพัทธ์ควรมีแนวโน้มอย่างไร?',o:['เข้าใกล้ความน่าจะเป็นทางทฤษฎี','เป็นศูนย์เสมอ','เท่ากับ 1 เสมอ','ลดลงทุกครั้ง'],a:0,e:'เมื่อทดลองจำนวนมากขึ้น ความถี่สัมพัทธ์มักมีแนวโน้มเข้าใกล้ความน่าจะเป็นทางทฤษฎี'},
+  {q:'9) ในกล่องมีลูกบอลแดง 4 ลูก น้ำเงิน 6 ลูก ถ้าเพิ่มลูกบอลแดงเป็น 8 ลูก โดยน้ำเงินเท่าเดิม P(แดง) จะเป็นอย่างไร?',o:['ลดลง','เท่าเดิม','เพิ่มขึ้น','เป็นศูนย์'],a:2,e:'เดิม P(แดง)=4/10=0.40 หลังเพิ่มเป็น 8/14≈0.57 จึงเพิ่มขึ้น'},
+  {q:'10) ข้อใดเป็นค่าความน่าจะเป็นที่เป็นไปไม่ได้?',o:['0','0.35','1','1.20'],a:3,e:'ค่าความน่าจะเป็นต้องอยู่ระหว่าง 0 ถึง 1 รวม 0 และ 1 ดังนั้น 1.20 เป็นไปไม่ได้'}
+];
+let answered=Array(questions.length).fill(false), score=0;
+function renderQuiz(){
+  const box=$('#quizBox');box.innerHTML='';
+  questions.forEach((x,i)=>{
+    const card=document.createElement('div');card.className='qcard';
+    const t=document.createElement('div');t.className='qtitle';t.textContent=x.q;card.append(t);
+    const opts=document.createElement('div');opts.className='options';
+    x.o.forEach((op,j)=>{
+      const b=document.createElement('button');b.className='option';b.textContent=op;
+      b.onclick=()=>{
+        if(answered[i])return;answered[i]=true;
+        const all=[...opts.querySelectorAll('.option')];all.forEach(z=>z.disabled=true);
+        if(j===x.a){b.classList.add('correct');score++;fb.className='feedback show good';fb.innerHTML='✅ ถูกต้อง — '+x.e}
+        else{b.classList.add('wrong');all[x.a].classList.add('correct');fb.className='feedback show bad';fb.innerHTML='❌ ยังไม่ถูก — '+x.e}
+        $('#score').textContent=`คะแนน ${score}/10`;
+      };
+      opts.append(b);
+    });
+    const fb=document.createElement('div');fb.className='feedback';
+    card.append(opts,fb);box.append(card);
+  });
+  $('#score').textContent='คะแนน 0/10';
+}
+$('#resetQuiz').onclick=()=>{answered=Array(questions.length).fill(false);score=0;renderQuiz();window.scrollTo({top:0,behavior:'smooth'})};
+renderQuiz();
+</script>
+<script>
+(function(){
+if(typeof THREE==='undefined'||!THREE.OrbitControls)return;
+const AU={ctx:null,on:true,nb:null};
+function ac(){
+  if(!AU.ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AU.ctx=new C();}
+  if(AU.ctx.state==='suspended')AU.ctx.resume();
+  return AU.ctx;
+}
+function noise(c){
+  if(!AU.nb){
+    const b=c.createBuffer(1,Math.floor(c.sampleRate*.5),c.sampleRate);
+    const d=b.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+    AU.nb=b;
+  }
+  return AU.nb;
+}
+function clack(w,vol,freq){
+  const c=ac();if(!c||!AU.on)return;
+  const t=c.currentTime+w;
+  const s=c.createBufferSource();s.buffer=noise(c);
+  const f=c.createBiquadFilter();f.type='bandpass';f.frequency.value=freq;f.Q.value=1.2;
+  const g=c.createGain();
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.004);g.gain.exponentialRampToValueAtTime(.0005,t+.1);
+  s.connect(f);f.connect(g);g.connect(c.destination);s.start(t,Math.random()*.3,.14);
+  const o=c.createOscillator(),og=c.createGain();
+  o.type='triangle';o.frequency.setValueAtTime(260+Math.random()*80,t);o.frequency.exponentialRampToValueAtTime(90,t+.07);
+  og.gain.setValueAtTime(vol*.6,t);og.gain.exponentialRampToValueAtTime(.0005,t+.08);
+  o.connect(og);og.connect(c.destination);o.start(t);o.stop(t+.1);
+}
+function ring(w,vol,base){
+  const c=ac();if(!c||!AU.on)return;
+  const t=c.currentTime+w;
+  [1,2.76,5.4,8.93].forEach((p,i)=>{
+    const o=c.createOscillator(),g=c.createGain();
+    o.type='sine';o.frequency.value=base*p;
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol/(i+1.4),t+.003);g.gain.exponentialRampToValueAtTime(.0003,t+1.1-i*.18);
+    o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+1.2);
+  });
+  clack(w,vol*.5,3800);
+}
+function whoosh(w,dur,vol){
+  const c=ac();if(!c||!AU.on)return;
+  const t=c.currentTime+w;
+  const s=c.createBufferSource();s.buffer=noise(c);s.loop=true;
+  const f=c.createBiquadFilter();f.type='bandpass';f.Q.value=.8;
+  f.frequency.setValueAtTime(500,t);f.frequency.exponentialRampToValueAtTime(2400,t+dur*.6);f.frequency.exponentialRampToValueAtTime(700,t+dur);
+  const g=c.createGain();
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+dur*.4);g.gain.exponentialRampToValueAtTime(.0003,t+dur);
+  s.connect(f);f.connect(g);g.connect(c.destination);s.start(t);s.stop(t+dur+.05);
+}
+function shakeSound(n,vol){
+  for(let i=0;i<n;i++)clack(i*.075+Math.random()*.03,vol*(.5+Math.random()*.4),1400+Math.random()*1800);
+}
+
+function pop(w,vol,freq){
+  const c=ac();if(!c||!AU.on)return;
+  const t=c.currentTime+w;
+  const o=c.createOscillator(),g=c.createGain();
+  o.type='sine';o.frequency.setValueAtTime(freq,t);o.frequency.exponentialRampToValueAtTime(freq*.5,t+.12);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.004);g.gain.exponentialRampToValueAtTime(.0003,t+.16);
+  o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+.2);
+  clack(w,vol*.5,2600);
+}
+function playChaCha(delay){
+  const c=ac();if(!c||!AU.on)return;
+  if(AU.bus){
+    const b=AU.bus;
+    b.gain.cancelScheduledValues(c.currentTime);
+    b.gain.setValueAtTime(b.gain.value,c.currentTime);
+    b.gain.linearRampToValueAtTime(0,c.currentTime+.12);
+  }
+  const out=c.createGain();out.gain.value=.55;out.connect(c.destination);AU.bus=out;
+  const t0=c.currentTime+(delay||0),st=.242;
+  const env=(g,t,a,d,v)=>{
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.exponentialRampToValueAtTime(v,t+a);
+    g.gain.exponentialRampToValueAtTime(.0003,t+a+d);
+  };
+  const tone=(type,f,t,d,v)=>{
+    const o=c.createOscillator(),g=c.createGain();
+    o.type=type;o.frequency.value=f;env(g,t,.006,d,v);
+    o.connect(g);g.connect(out);o.start(t);o.stop(t+d+.05);
+  };
+  const cow=t=>{
+    [587,845].forEach(f=>{
+      const o=c.createOscillator(),g=c.createGain(),b=c.createBiquadFilter();
+      o.type='square';o.frequency.value=f;
+      b.type='bandpass';b.frequency.value=700;b.Q.value=1.5;
+      env(g,t,.003,.16,.1);
+      o.connect(b);b.connect(g);g.connect(out);o.start(t);o.stop(t+.22);
+    });
+  };
+  const conga=(t,f)=>{
+    const o=c.createOscillator(),g=c.createGain();
+    o.type='sine';o.frequency.setValueAtTime(f*1.5,t);o.frequency.exponentialRampToValueAtTime(f,t+.06);
+    env(g,t,.004,.16,.32);
+    o.connect(g);g.connect(out);o.start(t);o.stop(t+.22);
+  };
+  const kick=t=>{
+    const o=c.createOscillator(),g=c.createGain();
+    o.type='sine';o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(45,t+.15);
+    env(g,t,.004,.22,.5);
+    o.connect(g);g.connect(out);o.start(t);o.stop(t+.28);
+  };
+  const guiro=t=>{
+    const s=c.createBufferSource();s.buffer=noise(c);
+    const f=c.createBiquadFilter();f.type='highpass';f.frequency.value=5000;
+    const g=c.createGain();env(g,t,.01,.09,.09);
+    s.connect(f);f.connect(g);g.connect(out);s.start(t,Math.random()*.2,.12);
+  };
+  const brass=(t,fs)=>{
+    fs.forEach(f=>{
+      const o=c.createOscillator(),g=c.createGain(),l=c.createBiquadFilter();
+      o.type='sawtooth';o.frequency.value=f;
+      l.type='lowpass';l.frequency.value=2000;
+      env(g,t,.012,.17,.06);
+      o.connect(l);l.connect(g);g.connect(out);o.start(t);o.stop(t+.25);
+    });
+  };
+  const marimba=(t,f)=>{tone('sine',f,t,.35,.18);tone('sine',f*4,t,.08,.05);};
+  const chord=[523.3,659.3,784];
+  for(let i=0;i<16;i++){
+    const t=t0+i*st,s=i%8;
+    if(s%2===0)cow(t);
+    if(s===0||s===4)kick(t);
+    if(s===2||s===5)tone('sine',2400,t,.05,.2);
+    if(s%2===1)guiro(t);
+  }
+  [6,7,8,14,15,16].forEach((i,k)=>{
+    conga(t0+i*st,k%3===1?260:200);
+    brass(t0+i*st,chord);
+  });
+  [[0,784],[2,659.3],[3,784],[4,880],[5,784],[6,659.3],[7,587.3],[8,523.3],[10,659.3],[11,784],[12,1046.5],[14,880],[15,784]].forEach(n=>marimba(t0+n[0]*st,n[1]));
+  [[0,130.8],[4,98],[6,98],[8,87.3],[12,98],[14,98],[16,130.8]].forEach(n=>tone('triangle',n[0]===16?n[1]:n[1],t0+n[0]*st,.3,.3));
+}
+
+const faceNormals={1:[0,1,0],6:[0,-1,0],2:[0,0,1],5:[0,0,-1],3:[1,0,0],4:[-1,0,0]};
+const matOrder=[3,4,1,6,2,5];
+const pipMap={
+  1:[[.5,.5]],
+  2:[[.28,.28],[.72,.72]],
+  3:[[.28,.28],[.5,.5],[.72,.72]],
+  4:[[.28,.28],[.72,.28],[.28,.72],[.72,.72]],
+  5:[[.28,.28],[.72,.28],[.5,.5],[.28,.72],[.72,.72]],
+  6:[[.28,.24],[.72,.24],[.28,.5],[.72,.5],[.28,.76],[.72,.76]]
+};
+function pipTex(v){
+  const s=256,c=document.createElement('canvas');c.width=c.height=s;
+  const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,s,s);
+  g.addColorStop(0,'#ffffff');g.addColorStop(1,'#e3eafa');
+  x.fillStyle=g;x.fillRect(0,0,s,s);
+  x.strokeStyle='rgba(120,140,190,.35)';x.lineWidth=10;x.strokeRect(5,5,s-10,s-10);
+  pipMap[v].forEach(p=>{
+    const rg=x.createRadialGradient(p[0]*s-6,p[1]*s-6,2,p[0]*s,p[1]*s,26);
+    rg.addColorStop(0,v===1?'#ff7ad0':'#4a5bd0');rg.addColorStop(1,v===1?'#e0188f':'#1a2670');
+    x.fillStyle=rg;x.beginPath();x.arc(p[0]*s,p[1]*s,v===1?34:24,0,Math.PI*2);x.fill();
+  });
+  const t=new THREE.CanvasTexture(c);
+  t.encoding=THREE.sRGBEncoding;t.anisotropy=8;
+  return t;
+}
+function coinTex(kind){
+  const c=document.createElement('canvas');c.width=c.height=512;
+  const t=new THREE.CanvasTexture(c);
+  t.encoding=THREE.sRGBEncoding;t.anisotropy=8;
+  const gold=kind==='H';
+  const draw=()=>{
+    const x=c.getContext('2d');
+    const g=x.createRadialGradient(200,190,30,256,256,260);
+    g.addColorStop(0,gold?'#fff4bd':'#ffffff');
+    g.addColorStop(.6,gold?'#f0bd3a':'#c6d3ea');
+    g.addColorStop(1,gold?'#b97f12':'#7f93b5');
+    x.fillStyle=g;x.fillRect(0,0,512,512);
+    x.strokeStyle=gold?'rgba(120,76,0,.55)':'rgba(40,60,100,.5)';
+    x.lineWidth=14;x.beginPath();x.arc(256,256,226,0,Math.PI*2);x.stroke();
+    x.lineWidth=5;x.beginPath();x.arc(256,256,204,0,Math.PI*2);x.stroke();
+    x.save();
+    x.translate(256,256);
+    x.rotate(gold?-Math.PI/2:Math.PI/2);
+    x.fillStyle=gold?'#6e4700':'#2c4263';
+    x.textAlign='center';x.textBaseline='middle';
+    x.font='800 170px "Noto Sans Thai",Tahoma,sans-serif';
+    x.fillText(gold?'หัว':'ก้อย',0,-6);
+    x.font='700 40px "Noto Sans Thai",Tahoma,sans-serif';
+    x.fillText(gold?'HEADS':'TAILS',0,112);
+    x.restore();
+    t.needsUpdate=true;
+  };
+  draw();
+  if(document.fonts){
+    if(document.fonts.load)document.fonts.load('800 40px "Noto Sans Thai"').then(draw).catch(()=>{});
+    if(document.fonts.ready)document.fonts.ready.then(draw);
+  }
+  return t;
+}
+function roundedBox(size,r,seg){
+  const g=new THREE.BoxGeometry(size,size,size,seg,seg,seg);
+  const p=g.attributes.position,n=g.attributes.normal;
+  const h=size/2-r,v=new THREE.Vector3(),k=new THREE.Vector3(),d=new THREE.Vector3();
+  for(let i=0;i<p.count;i++){
+    v.fromBufferAttribute(p,i);
+    k.set(Math.max(-h,Math.min(h,v.x)),Math.max(-h,Math.min(h,v.y)),Math.max(-h,Math.min(h,v.z)));
+    d.copy(v).sub(k);
+    if(d.lengthSq()>1e-8){
+      d.normalize();
+      v.copy(k).addScaledVector(d,r);
+      p.setXYZ(i,v.x,v.y,v.z);
+      n.setXYZ(i,d.x,d.y,d.z);
+    }
+  }
+  p.needsUpdate=true;n.needsUpdate=true;
+  return g;
+}
+function diceQuat(v,yaw){
+  const n=faceNormals[v];
+  const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(n[0],n[1],n[2]),new THREE.Vector3(0,1,0));
+  const y=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),yaw);
+  return y.multiply(q);
+}
+function bounceDice(u,h0){
+  if(u<.45){const s=u/.45;return h0*(1-s*s);}
+  const segs=[[.45,.7,1.1],[.7,.85,.4],[.85,.93,.12]];
+  for(let i=0;i<segs.length;i++){
+    const a=segs[i][0],b=segs[i][1],p=segs[i][2];
+    if(u<b){const s=(u-a)/(b-a);return p*4*s*(1-s);}
+  }
+  return 0;
+}
+function bounceCoin(u){
+  const segs=[[.7,.86,.35],[.86,.95,.1]];
+  for(let i=0;i<segs.length;i++){
+    const a=segs[i][0],b=segs[i][1],p=segs[i][2];
+    if(u<b){const s=(u-a)/(b-a);return p*4*s*(1-s);}
+  }
+  return 0;
+}
+function platformTex(){
+  const c=document.createElement('canvas');c.width=c.height=512;
+  const x=c.getContext('2d');
+  const g=x.createRadialGradient(256,256,10,256,256,256);
+  g.addColorStop(0,'#ffffff');g.addColorStop(.7,'#e4ecff');g.addColorStop(1,'#c9d6f5');
+  x.fillStyle=g;x.fillRect(0,0,512,512);
+  x.strokeStyle='rgba(120,140,210,.28)';x.lineWidth=2;
+  for(let r=40;r<256;r+=44){x.beginPath();x.arc(256,256,r,0,Math.PI*2);x.stroke();}
+  const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;
+  return t;
+}
+function envCanvas(){
+  const c=document.createElement('canvas');c.width=512;c.height=256;
+  const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,0,256);
+  g.addColorStop(0,'#bfe3ff');g.addColorStop(.5,'#ffffff');g.addColorStop(1,'#7a5ae0');
+  x.fillStyle=g;x.fillRect(0,0,512,256);
+  x.fillStyle='rgba(255,255,255,.95)';
+  x.fillRect(60,40,90,40);x.fillRect(260,30,120,50);x.fillRect(430,50,60,36);
+  x.fillStyle='rgba(255,170,230,.8)';x.fillRect(180,90,70,30);
+  return c;
+}
+
+const BCOL={red:0xff3b4e,blue:0x2e7bff,green:0x2fcf6a,yellow:0xffc93a};
+const BEMO={red:'🔴',blue:'🔵',green:'🟢',yellow:'🟡'};
+const BNOTE={red:523,blue:440,green:659,yellow:784};
+function mulberry(a){
+  return function(){
+    a|=0;a=a+0x6D2B79F5|0;
+    let t=Math.imul(a^a>>>15,1|a);
+    t=t+Math.imul(t^t>>>7,61|t)^t;
+    return((t^t>>>14)>>>0)/4294967296;
+  };
+}
+function genBowl(){
+  const rnd=mulberry(7),cy=2.9,R=2.18,maxY=cy-2.5+1.75,ctr=new THREE.Vector3(0,cy,0),P=[];
+  for(let i=0;i<60;i++){
+    let p;
+    do{p=new THREE.Vector3((rnd()*2-1)*R,cy-R+rnd()*(maxY-(cy-R)),(rnd()*2-1)*R);}while(p.distanceTo(ctr)>R);
+    P.push(p);
+  }
+  for(let it=0;it<160;it++){
+    for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){
+      const d=P[i].distanceTo(P[j]);
+      if(d<.66&&d>1e-4){
+        const push=P[i].clone().sub(P[j]).multiplyScalar((.66-d)/d*.5);
+        P[i].add(push);P[j].sub(push);
+      }
+    }
+    P.forEach(p=>{
+      p.y-=.02;
+      const v=p.clone().sub(ctr);
+      if(v.length()>R){v.setLength(R);p.copy(v).add(ctr);}
+      p.y=Math.min(p.y,maxY);
+    });
+  }
+  P.sort((a,b)=>a.y-b.y);
+  return P;
+}
+function cardFront(n){
+  const c=document.createElement('canvas');c.width=256;c.height=384;
+  const x=c.getContext('2d');
+  const col=n%2===0?'#d81b60':'#1a2670',suit=n%2===0?'♦':'♠';
+  x.beginPath();
+  if(x.roundRect)x.roundRect(4,4,248,376,26);else x.rect(4,4,248,376);
+  x.clip();
+  const g=x.createLinearGradient(0,0,256,384);
+  g.addColorStop(0,'#ffffff');g.addColorStop(1,'#e8eefc');
+  x.fillStyle=g;x.fillRect(0,0,256,384);
+  x.strokeStyle='rgba(120,140,200,.5)';x.lineWidth=8;x.strokeRect(10,10,236,364);
+  x.fillStyle=col;x.textAlign='center';x.textBaseline='middle';
+  x.font='900 150px "Noto Sans Thai",Tahoma,sans-serif';
+  x.fillText(String(n),128,176);
+  x.font='800 44px "Noto Sans Thai",Tahoma,sans-serif';
+  x.fillText(String(n),48,52);x.fillText(suit,48,98);
+  x.save();x.translate(208,332);x.rotate(Math.PI);
+  x.fillText(String(n),0,0);x.fillText(suit,0,46);
+  x.restore();
+  x.font='800 70px "Noto Sans Thai",Tahoma,sans-serif';
+  x.fillText(suit,128,296);
+  const t=new THREE.CanvasTexture(c);
+  t.encoding=THREE.sRGBEncoding;t.anisotropy=8;
+  return t;
+}
+function cardBack(){
+  const c=document.createElement('canvas');c.width=256;c.height=384;
+  const x=c.getContext('2d');
+  x.beginPath();
+  if(x.roundRect)x.roundRect(4,4,248,376,26);else x.rect(4,4,248,376);
+  x.clip();
+  const g=x.createLinearGradient(0,0,256,384);
+  g.addColorStop(0,'#ff43c6');g.addColorStop(.5,'#7b24df');g.addColorStop(1,'#2844b8');
+  x.fillStyle=g;x.fillRect(0,0,256,384);
+  x.strokeStyle='rgba(255,255,255,.28)';x.lineWidth=3;
+  for(let i=-400;i<700;i+=34){
+    x.beginPath();x.moveTo(i,0);x.lineTo(i+384,384);x.stroke();
+    x.beginPath();x.moveTo(i+384,0);x.lineTo(i,384);x.stroke();
+  }
+  x.strokeStyle='rgba(255,255,255,.9)';x.lineWidth=8;x.strokeRect(14,14,228,356);
+  x.fillStyle='rgba(255,255,255,.92)';x.beginPath();x.arc(128,192,52,0,Math.PI*2);x.fill();
+  x.fillStyle='#7b24df';x.font='900 64px "Noto Sans Thai",Tahoma,sans-serif';
+  x.textAlign='center';x.textBaseline='middle';x.fillText('P',128,196);
+  const t=new THREE.CanvasTexture(c);
+  t.encoding=THREE.sRGBEncoding;t.anisotropy=8;
+  return t;
+}
+function makeCard(n){
+  const g=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.BoxGeometry(1.04,.02,1.6),new THREE.MeshStandardMaterial({color:0xf3f6ff,roughness:.5}));
+  body.castShadow=true;body.receiveShadow=true;
+  const front=new THREE.Mesh(new THREE.PlaneGeometry(1.1,1.65),new THREE.MeshStandardMaterial({map:cardFront(n),roughness:.45,transparent:true,alphaTest:.5}));
+  front.rotation.x=-Math.PI/2;front.position.y=.0115;
+  const back=new THREE.Mesh(new THREE.PlaneGeometry(1.1,1.65),new THREE.MeshStandardMaterial({map:cardBack(),roughness:.4,transparent:true,alphaTest:.5}));
+  back.rotation.x=Math.PI/2;back.position.y=-.0115;
+  g.add(body,front,back);
+  g.rotation.order='YXZ';
+  return g;
+}
+function bounceBall(u){
+  const segs=[[.65,.82,.5],[.82,.93,.18],[.93,.98,.05]];
+  for(let i=0;i<segs.length;i++){
+    const a=segs[i][0],b=segs[i][1],p=segs[i][2];
+    if(u<b){const s=(u-a)/(b-a);return p*4*s*(1-s);}
+  }
+  return 0;
+}
+function cardSlot(i){return new THREE.Vector3(((i%5)-2)*1.5,.02,-3.1+Math.floor(i/5)*2.2);}
+
+const CFG={
+  dice:{panel:'lab2',btn:'rollOne',verb:'ทอย',title:'🎲 ฉาก 3D: ห้องทดลองลูกเต๋า',head:'ลูกเต๋า 3D',max:4,
+    desc:'ลองซูมเข้าไปดูแต้มบนแต่ละหน้า แล้วแตะมือเพื่อทอย ผลที่เห็นในฉากจะตรงกับตัวเลขและกราฟด้านล่าง'},
+  coin:{panel:'lab4',btn:'flipCoinOne',verb:'โยน',title:'🪙 ฉาก 3D: ห้องทดลองเหรียญ',head:'เหรียญ 3D',max:3,
+    desc:'ลองซูมเข้าไปดูหน้าหัว–ก้อย แล้วแตะมือเพื่อโยน ผลที่เห็นในฉากจะตรงกับตัวเลขและสรุปด้านล่าง'},
+  ball:{panel:'lab3',btn:'drawBallOne',verb:'โยน',title:'🔴 ฉาก 3D: ชามลูกบอล 4 สี',head:'ลูกบอล 3D',max:60,
+    desc:'แตะมือเพื่อสุ่มหยิบ ลูกบอลที่ถูกเลือกจะกระโดดออกจากชามมาลงบนโต๊ะ ปุ่ม “สุ่มหยิบตามจำนวนที่กำหนด” จะโยนหลายลูกพร้อมกัน'},
+  card:{panel:'lab5',btn:'drawCardOne',verb:'สุ่ม',title:'🃏 ฉาก 3D: สำรับบัตรเลข 1–10',head:'บัตร 3D',max:10,
+    desc:'บัตร 10 ใบวางคว่ำอยู่ แตะมือเพื่อสุ่ม บัตรที่ถูกเลือกจะสะบัดหมุนมาเปิดหน้าตรงกลางโต๊ะ'}
+};
+
+function makeStage(kind){
+  const cfg=CFG[kind];
+  const isDice=kind==='dice',isCoin=kind==='coin',isBall=kind==='ball',isCard=kind==='card';
+  const panel=document.getElementById(cfg.panel);
+  const row=document.createElement('div');
+  row.className='stageRow';
+  row.innerHTML=`
+    <div class="card stageCard">
+      <h3>${cfg.title}</h3>
+      <div class="stageView">
+        <canvas></canvas>
+        <div class="hsLayer"></div>
+        <div class="stageBar">
+          <button class="glassBtn" data-act="sound">🔊 เสียง</button>
+          <button class="glassBtn" data-act="reset">⟲ รีเซ็ตมุมกล้อง</button>
+          <button class="glassBtn" data-act="cam">📷 โยนด้วยมือ</button>
+        </div>
+        <button class="handBtn" title="แตะมือเพื่อ${cfg.verb}"><span class="hand">🤚</span><span>แตะเพื่อ${cfg.verb}</span></button>
+        <div class="hsCard"></div>
+      </div>
+    </div>
+    <div class="card infoCard">
+      <h3>${cfg.head}</h3>
+      <p class="note" style="margin:0">${cfg.desc}</p>
+      <div class="resBadge">ยังไม่ได้${cfg.verb}</div>
+      <div class="hsChips"></div>
+      <ul class="tips">
+        <li>🖱️ <b>ลากซ้าย</b> — หมุนมุมมอง (Rotate)</li>
+        <li>✋ <b>ลากขวา / ลากสองนิ้ว</b> — แพนกล้อง (Pan)</li>
+        <li>⚙️ <b>ลูกกลิ้งเมาส์ / ถ่างนิ้ว</b> — ซูมเข้า-ออก (Zoom)</li>
+        <li>🤚 <b>แตะมือ</b> — ${cfg.verb}พร้อมเสียงเพลงสามช่า</li>
+        <li>📷 <b>MediaPipe</b> — กำมือแล้วแบมือ หรือสะบัดมือลงหน้ากล้อง</li>
+      </ul>
+    </div>`;
+  panel.insertBefore(row,panel.querySelector('.grid'));
+  const view=row.querySelector('.stageView'),canvas=row.querySelector('canvas'),layer=row.querySelector('.hsLayer');
+  const card=row.querySelector('.hsCard'),hand=row.querySelector('.handBtn'),chips=row.querySelector('.hsChips'),badge=row.querySelector('.resBadge');
+
+  const renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.setClearColor(0x000000,0);
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.05;
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+
+  const scene=new THREE.Scene();
+  try{
+    const pm=new THREE.PMREMGenerator(renderer);
+    const et=new THREE.CanvasTexture(envCanvas());
+    et.mapping=THREE.EquirectangularReflectionMapping;
+    et.encoding=THREE.sRGBEncoding;
+    scene.environment=pm.fromEquirectangular(et).texture;
+    et.dispose();pm.dispose();
+  }catch(e){}
+
+  const camera=new THREE.PerspectiveCamera(42,1.5,.1,100);
+  const home=new THREE.Vector3(0,(isBall||isCard)?7:6.4,(isBall||isCard)?10.2:9.2),homeT=new THREE.Vector3(0,isBall?1.2:.4,0);
+  camera.position.copy(home);
+
+  const controls=new THREE.OrbitControls(camera,canvas);
+  controls.target.copy(homeT);
+  controls.enableDamping=true;controls.dampingFactor=.08;
+  controls.enablePan=true;controls.enableZoom=true;controls.enableRotate=true;
+  controls.screenSpacePanning=false;
+  controls.rotateSpeed=.8;controls.zoomSpeed=.9;controls.panSpeed=.8;
+  controls.minDistance=3.5;controls.maxDistance=20;
+  controls.maxPolarAngle=Math.PI/2-.04;
+  controls.update();
+
+  scene.add(new THREE.AmbientLight(0xffffff,.45));
+  scene.add(new THREE.HemisphereLight(0xcfe4ff,0x6a4bd8,.55));
+  const sun=new THREE.DirectionalLight(0xfff4e0,1.2);
+  sun.position.set(5,9,6);
+  sun.castShadow=true;
+  sun.shadow.mapSize.set(2048,2048);
+  sun.shadow.camera.left=-8;sun.shadow.camera.right=8;sun.shadow.camera.top=8;sun.shadow.camera.bottom=-8;
+  sun.shadow.camera.near=1;sun.shadow.camera.far=30;
+  sun.shadow.bias=-.0004;
+  scene.add(sun);
+  const fill=new THREE.DirectionalLight(0xff7bd5,.35);
+  fill.position.set(-6,3,-4);
+  scene.add(fill);
+
+  const base=new THREE.Mesh(
+    new THREE.CylinderGeometry(5.6,5.9,.3,72),
+    new THREE.MeshStandardMaterial({map:platformTex(),roughness:.55,metalness:.05})
+  );
+  base.position.y=-.15;base.receiveShadow=true;
+  scene.add(base);
+  const rim=new THREE.Mesh(
+    new THREE.TorusGeometry(5.65,.07,16,120),
+    new THREE.MeshStandardMaterial({color:0xff43c6,emissive:0xff43c6,emissiveIntensity:.55,roughness:.4})
+  );
+  rim.rotation.x=Math.PI/2;rim.position.y=.01;
+  scene.add(rim);
+
+  const items=[];
+  let rig=null,ballMats=null,bowlPos=null;
+  if(isDice){
+    const geo=roundedBox(1,.12,6);
+    const mats=matOrder.map(v=>new THREE.MeshStandardMaterial({map:pipTex(v),roughness:.32,metalness:.02}));
+    for(let i=0;i<cfg.max;i++){
+      const m=new THREE.Mesh(geo,mats);
+      m.castShadow=true;m.receiveShadow=true;m.visible=false;
+      scene.add(m);items.push(m);
+    }
+  }else if(isCoin){
+    const geo=new THREE.CylinderGeometry(.9,.9,.15,64);
+    const edge=new THREE.MeshStandardMaterial({color:0xd9a528,metalness:.9,roughness:.3});
+    const top=new THREE.MeshStandardMaterial({map:coinTex('H'),metalness:.85,roughness:.28});
+    const bot=new THREE.MeshStandardMaterial({map:coinTex('T'),metalness:.85,roughness:.28});
+    for(let i=0;i<cfg.max;i++){
+      const m=new THREE.Mesh(geo,[edge,top,bot]);
+      m.rotation.order='YXZ';
+      m.castShadow=true;m.receiveShadow=true;m.visible=false;
+      scene.add(m);items.push(m);
+    }
+  }else if(isBall){
+    rig=new THREE.Group();scene.add(rig);
+    bowlPos=genBowl();
+    const bgeo=new THREE.SphereGeometry(.32,28,18);
+    ballMats={};
+    Object.keys(BCOL).forEach(k=>{ballMats[k]=new THREE.MeshStandardMaterial({color:BCOL[k],roughness:.22,metalness:.05});});
+    for(let i=0;i<cfg.max;i++){
+      const m=new THREE.Mesh(bgeo,ballMats.red);
+      m.castShadow=true;m.receiveShadow=true;m.visible=false;m.userData.c='red';
+      rig.add(m);items.push(m);
+    }
+    const bowl=new THREE.Mesh(
+      new THREE.SphereGeometry(2.5,56,28,0,Math.PI*2,Math.PI/2,Math.PI/2),
+      new THREE.MeshPhysicalMaterial({color:0xd6ebff,transparent:true,opacity:.26,roughness:.05,metalness:0,side:THREE.DoubleSide,depthWrite:false})
+    );
+    bowl.position.y=2.9;rig.add(bowl);
+    const lip=new THREE.Mesh(new THREE.TorusGeometry(2.5,.08,16,96),new THREE.MeshStandardMaterial({color:0xffffff,roughness:.2,metalness:.3}));
+    lip.rotation.x=Math.PI/2;lip.position.y=2.9;rig.add(lip);
+    const stand=new THREE.Mesh(new THREE.CylinderGeometry(.9,1.2,.4,40),new THREE.MeshStandardMaterial({color:0xff43c6,roughness:.35,metalness:.2}));
+    stand.position.y=.2;stand.castShadow=true;rig.add(stand);
+  }else{
+    for(let i=0;i<cfg.max;i++){
+      const m=makeCard(i+1);
+      scene.add(m);items.push(m);
+    }
+  }
+
+  let count=2;
+  const zJit=[.2,-.3,.3,-.2];
+  function slot(i,n){
+    const sp=isDice?1.7:2.3;
+    return new THREE.Vector3((i-(n-1)/2)*sp,0,zJit[i%4]*(isDice?1:.6));
+  }
+  function setBalls(){
+    const bag=buildBagArray();
+    const rnd=mulberry(bag.length*13+5);
+    for(let i=bag.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));const t=bag[i];bag[i]=bag[j];bag[j]=t;}
+    items.forEach((m,i)=>{
+      if(i<bag.length){m.visible=true;m.position.copy(bowlPos[i]);m.rotation.set(0,0,0);m.userData.c=bag[i];m.material=ballMats[bag[i]];}
+      else m.visible=false;
+    });
+    count=bag.length;
+  }
+  function setCards(){
+    items.forEach((m,i)=>{
+      const p=cardSlot(i);
+      m.visible=true;m.position.copy(p);m.rotation.set(Math.PI,0,0);m.scale.set(1,1,1);
+    });
+    count=10;
+  }
+  function setCount(n){
+    anims.length=0;pending=false;
+    if(isBall){setBalls();return;}
+    if(isCard){setCards();return;}
+    count=n;
+    items.forEach((m,i)=>{
+      m.visible=i<n;
+      if(i>=n)return;
+      const p=slot(i,n);
+      m.position.set(p.x,isDice?.5:.075,p.z);
+      if(isDice){
+        if(!m.userData.v)m.userData.v=1;
+        if(m.userData.yaw===undefined)m.userData.yaw=Math.random()*Math.PI*2;
+        m.quaternion.copy(diceQuat(m.userData.v,m.userData.yaw));
+      }else{
+        if(m.userData.h===undefined)m.userData.h=true;
+        if(m.userData.yaw===undefined)m.userData.yaw=Math.random()*Math.PI*2;
+        m.rotation.set(m.userData.h?0:Math.PI,m.userData.yaw,0);
+      }
+    });
+  }
+
+  const REL=.6;
+  const anims=[];
+  let pending=false,pendingVals=null,shakeUntil=0;
+
+  function play(vals){
+    anims.length=0;
+    pendingVals=vals;pending=true;
+    const now=performance.now()/1000+REL;
+    shakeUntil=now;
+    playChaCha(0);
+    if(isDice){
+      const n=vals.length;count=n;
+      items.forEach((m,i)=>{m.visible=i<n;});
+      shakeSound(8,.2);
+      whoosh(REL-.02,.45,.07);
+      vals.forEach((v,i)=>{
+        const e=slot(i,n);
+        e.x+=(Math.random()-.5)*.3;e.z+=(Math.random()-.5)*.4;
+        const a={m:items[i],t0:now,delay:i*.07,dur:1.55,
+          s:new THREE.Vector3(4.2+Math.random()*.8,4.4,-1.2+i*.6),e:e,
+          axis:new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize(),
+          spin:(3+Math.random()*2)*Math.PI*2*(Math.random()<.5?-1:1),
+          q:diceQuat(v,Math.random()*Math.PI*2),done:false};
+        a.m.userData.v=v;
+        a.m.visible=false;
+        anims.push(a);
+        [[.45,1],[.7,.55],[.85,.3],[.93,.16]].forEach(k=>{
+          clack(REL+a.delay+k[0]*a.dur,.26*k[1],1800+Math.random()*1500);
+        });
+      });
+    }else if(isCoin){
+      const n=vals.length;count=n;
+      items.forEach((m,i)=>{m.visible=i<n;});
+      shakeSound(4,.08);
+      whoosh(REL-.02,.45,.07);
+      ring(REL,.05,2600);
+      vals.forEach((h,i)=>{
+        const e=slot(i,n);
+        const a={m:items[i],t0:now,delay:i*.08,dur:1.7,
+          s:new THREE.Vector3(e.x+1.6,1.2,1.4),e:e,
+          total:(4+i)*Math.PI*2+(h?0:Math.PI),yaw:Math.random()*Math.PI*2,done:false};
+        a.m.userData.h=h;a.m.userData.yaw=a.yaw;
+        a.m.visible=false;
+        anims.push(a);
+        [[.7,1],[.86,.55],[.95,.3]].forEach(k=>{
+          ring(REL+a.delay+k[0]*a.dur,.09*k[1],2300+Math.random()*900);
+        });
+      });
+    }else if(isBall){
+      setBalls();
+      const used={};
+      const k=Math.min(vals.length,12);
+      shakeSound(6,.12);
+      whoosh(REL-.02,.45,.06);
+      for(let i=0;i<k;i++){
+        const c=vals[i];
+        let best=-1;
+        items.forEach((m,j)=>{
+          if(m.visible&&!used[j]&&m.userData.c===c&&(best<0||m.position.y>items[best].position.y))best=j;
+        });
+        if(best<0)continue;
+        used[best]=true;
+        const per=Math.min(k,6);
+        const e=new THREE.Vector3(((i%6)-(per-1)/2)*.85,.32,4.0+Math.floor(i/6)*.85);
+        const a={m:items[best],t0:now,delay:i*.12,dur:1.5,s:items[best].position.clone(),e:e,
+          sp:new THREE.Vector3((Math.random()-.5)*14,(Math.random()-.5)*14,(Math.random()-.5)*14),c:c,done:false};
+        anims.push(a);
+        [[.65,1],[.82,.6],[.93,.35]].forEach(q=>{
+          pop(REL+a.delay+q[0]*a.dur,.2*q[1],BNOTE[c]*(q[0]>.7?1:.5));
+        });
+      }
+    }else{
+      setCards();
+      const s=cardSlot(vals-1);
+      anims.push({m:items[vals-1],t0:now,delay:0,dur:1.4,s:s,e:new THREE.Vector3(0,.02,3.2),
+        spin:(Math.random()<.5?-1:1)*4*Math.PI,done:false});
+      whoosh(REL-.02,.5,.08);
+      clack(REL-.05,.12,2200);
+      clack(REL+1.12,.3,3000);
+      clack(REL+1.3,.12,2200);
+    }
+    hand.classList.remove('throwing');
+    void hand.offsetWidth;
+    hand.classList.add('throwing');
+    setTimeout(()=>hand.classList.remove('throwing'),950);
+  }
+
+  function finish(){
+    pending=false;
+    let t='';
+    if(isDice){
+      const s=pendingVals.reduce((a,b)=>a+b,0);
+      t='🎲 '+pendingVals.join(' + ')+' = '+s+(matchesEvent(pendingVals)?' ✅':' ✖');
+    }else if(isCoin){
+      t='🪙 '+pendingVals.map(h=>h?'หัว':'ก้อย').join(' • ');
+    }else if(isBall){
+      const cnt={red:0,blue:0,green:0,yellow:0};
+      pendingVals.forEach(c=>cnt[c]++);
+      t=Object.keys(cnt).filter(k=>cnt[k]>0).map(k=>BEMO[k]+' '+cnt[k]).join('  ');
+    }else{
+      t='🃏 ได้เลข '+pendingVals+(cardConditionInfo().fn(pendingVals)?' ✅ เข้าเงื่อนไข':' ✖ ไม่เข้าเงื่อนไข');
+    }
+    badge.textContent=t;
+    badge.classList.remove('pop');void badge.offsetWidth;badge.classList.add('pop');
+  }
+
+  function tick(now){
+    if(isBall){
+      const k=shakeUntil-now;
+      rig.rotation.z=k>0?.05*Math.sin(now*45)*Math.min(1,k*3):0;
+    }
+    anims.forEach(a=>{
+      const u0=(now-a.t0-a.delay)/a.dur;
+      if(u0<0)return;
+      const u=Math.min(u0,1);
+      if(isDice){
+        a.m.visible=true;
+        const ex=1-Math.pow(1-Math.min(u/.8,1),3);
+        a.m.position.set(a.s.x+(a.e.x-a.s.x)*ex,.5+bounceDice(u,a.s.y-.5),a.s.z+(a.e.z-a.s.z)*ex);
+        const e=1-Math.pow(1-Math.min(u/.93,1),2.2);
+        const q=new THREE.Quaternion().setFromAxisAngle(a.axis,a.spin*(1-e));
+        a.m.quaternion.copy(q.multiply(a.q));
+      }else if(isCoin){
+        a.m.visible=true;
+        const s=Math.min(u/.7,1);
+        const y=u<.7?.075+(a.s.y-.075)*(1-s)+3.3*4*s*(1-s):.075+bounceCoin(u);
+        a.m.position.set(a.s.x+(a.e.x-a.s.x)*s,y,a.s.z+(a.e.z-a.s.z)*s);
+        const ang=a.total*(1-Math.pow(1-s,2));
+        const wob=u>.7?.16*Math.sin((u-.7)*70)*Math.pow(1-(u-.7)/.3,2):0;
+        a.m.rotation.set(ang,a.yaw,wob);
+      }else if(isBall){
+        const s=Math.min(u/.65,1);
+        const y=u<.65?a.s.y+(.32-a.s.y)*s+3.6*4*s*(1-s):.32+bounceBall(u);
+        a.m.position.set(a.s.x+(a.e.x-a.s.x)*s,y,a.s.z+(a.e.z-a.s.z)*s);
+        a.m.rotation.set(a.sp.x*u,a.sp.y*u,a.sp.z*u);
+      }else{
+        const s=Math.min(u/.8,1);
+        const e=1-Math.pow(1-s,3);
+        const b=u>.8?(u-.8)/.2:0;
+        const y=u<.8?.02+2.8*4*s*(1-s):.02+.12*4*b*(1-b);
+        a.m.position.set(a.s.x+(a.e.x-a.s.x)*e,y,a.s.z+(a.e.z-a.s.z)*e);
+        a.m.rotation.set(Math.PI-3*Math.PI*e,a.spin*(1-e),.15*(1-e)*Math.sin(u*20));
+        const sc=1+.6*e;
+        a.m.scale.set(sc,sc,sc);
+      }
+      if(u0>=1)a.done=true;
+    });
+    if(pending&&anims.length&&anims.every(a=>a.done))finish();
+  }
+
+  const V=THREE.Vector3;
+  let hs;
+  if(isDice){
+    hs=[
+      {t:'หน้าลูกเต๋า 6 หน้า',at:()=>new V(slot(0,count).x,1.7,slot(0,count).z),
+       b:()=>'ลูกเต๋ามาตรฐานมี 6 หน้า แต่ละหน้ามีโอกาสออกเท่ากัน คือ 1/6 ≈ 16.7% และหน้าตรงข้ามรวมกันเป็น 7 เสมอ'},
+      {t:'Sample Space ของการทอย',at:()=>new V(0,.15,3.6),
+       b:()=>`ทอย ${count} ลูก จะได้ n(S) = 6^${count} = ${Math.pow(6,count).toLocaleString('th-TH')} ผลลัพธ์ และผลรวมอยู่ระหว่าง ${count} ถึง ${count*6}`},
+      {t:'ผลการทดลองสะสม',at:()=>new V(-3.8,.6,-2.2),
+       b:()=>diceTotal?`ทอยแล้ว ${diceTotal} รอบ เข้าเงื่อนไข “${eventLabel()}” ${diceSuccess} รอบ ความถี่สัมพัทธ์ = ${(diceSuccess/diceTotal).toFixed(3)}`:'ยังไม่มีข้อมูล แตะมือเพื่อเริ่มทดลอง แล้วดูความถี่สัมพัทธ์เปลี่ยนไปตามจำนวนรอบ'}
+    ];
+  }else if(isCoin){
+    hs=[
+      {t:'เหรียญเที่ยงตรง',at:()=>new V(slot(0,count).x,1.3,slot(0,count).z),
+       b:()=>'เหรียญมี 2 หน้า คือ หัวและก้อย แต่ละด้านมีโอกาสเท่ากัน P(หัว) = P(ก้อย) = 1/2 = 50%'},
+      {t:'Sample Space ของการโยน',at:()=>new V(0,.15,3.6),
+       b:()=>`โยน ${count} เหรียญ จะได้ n(S) = 2^${count} = ${Math.pow(2,count)} ผลลัพธ์ เช่น S = {${patternList(count).join(', ')}}`},
+      {t:'ผลการทดลองสะสม',at:()=>new V(-3.8,.6,-2.2),
+       b:()=>coinRounds?`โยนแล้ว ${coinRounds} รอบ ได้หัว ${coinHeads} ก้อย ${coinTails} สัดส่วนหัว = ${(coinHeads/(coinRounds*count)).toFixed(3)}`:'ยังไม่มีข้อมูล แตะมือเพื่อเริ่มทดลอง แล้วสังเกตสัดส่วนหัวว่าเข้าใกล้ 0.5 หรือไม่'}
+    ];
+  }else if(isBall){
+    hs=[
+      {t:'ชามลูกบอล 4 สี',at:()=>new V(0,3.6,0),
+       b:()=>{const c=getBallCounts();return `ในชามมีลูกบอล ${totalBalls()} ลูก (แดง ${c.red} น้ำเงิน ${c.blue} เขียว ${c.green} เหลือง ${c.yellow}) การหยิบแบบสุ่มทำให้ทุกลูกมีโอกาสถูกหยิบเท่ากัน`;}},
+      {t:'ความน่าจะเป็นทางทฤษฎี',at:()=>new V(0,.4,4.4),
+       b:()=>`${$('#probTitle').textContent} = ${$('#ballProb').textContent} (${$('#ballPercent').textContent}) คำนวณจากจำนวนลูกสีที่สนใจ ÷ จำนวนลูกทั้งหมด`},
+      {t:'ผลการหยิบสะสม',at:()=>new V(-4,.6,-1.2),
+       b:()=>`หยิบสะสม แดง ${drawSummary.red} น้ำเงิน ${drawSummary.blue} เขียว ${drawSummary.green} เหลือง ${drawSummary.yellow} ยิ่งสุ่มมาก สัดส่วนยิ่งเข้าใกล้ค่าทางทฤษฎี`}
+    ];
+  }else{
+    hs=[
+      {t:'สำรับบัตรเลข 1–10',at:()=>new V(0,.9,-2.1),
+       b:()=>'มีบัตร 10 ใบ เลข 1 ถึง 10 หยิบแบบสุ่ม แต่ละใบมีโอกาส 1/10 = 10% เท่ากัน n(S) = 10'},
+      {t:'เหตุการณ์ที่สนใจ',at:()=>new V(0,.3,4.4),
+       b:()=>`${$('#cardTheoryTitle').textContent} = ${$('#cardTheoryProb').textContent} (${$('#cardTheoryPercent').textContent}) ดูใบที่เข้าเงื่อนไขได้จากชุดตัวเลขในตารางด้านล่าง`},
+      {t:'ผลการทดลองสะสม',at:()=>new V(-4.2,.6,.8),
+       b:()=>cardTotal?`สุ่มแล้ว ${cardTotal} ครั้ง เข้าเงื่อนไข ${cardSuccess} ครั้ง ความถี่สัมพัทธ์ = ${(cardSuccess/cardTotal).toFixed(3)}`:'ยังไม่มีข้อมูล แตะมือเพื่อสุ่มบัตร แล้วดูความถี่สัมพัทธ์เปลี่ยนไป'}
+    ];
+  }
+
+  let focus=null;
+  controls.addEventListener('start',()=>{focus=null;});
+  function closeCard(){
+    card.classList.remove('show');
+    hs.forEach(o=>{o.el.classList.remove('on');o.chip.classList.remove('on');});
+  }
+  function openCard(i){
+    const h=hs[i];
+    card.innerHTML=`<span class="hsTag">${i+1}</span><div><b>${h.t}</b><p>${h.b()}</p></div><button class="x" aria-label="ปิด">✕</button>`;
+    card.classList.remove('show');void card.offsetWidth;card.classList.add('show');
+    card.querySelector('.x').onclick=closeCard;
+    hs.forEach((o,j)=>{o.el.classList.toggle('on',j===i);o.chip.classList.toggle('on',j===i);});
+    const p=h.at();
+    focus={pos:p.clone().add(new V(2.6,3.2,5.6)),tgt:new V(p.x,Math.min(p.y,.6),p.z),t0:performance.now()/1000};
+  }
+  hs.forEach((h,i)=>{
+    h.el=document.createElement('button');
+    h.el.className='hs';h.el.textContent=i+1;h.el.title=h.t;
+    h.el.onclick=()=>openCard(i);
+    layer.append(h.el);
+    h.chip=document.createElement('button');
+    h.chip.className='chip';
+    h.chip.innerHTML=`<i>${i+1}</i><span>${h.t}</span>`;
+    h.chip.onclick=()=>openCard(i);
+    chips.append(h.chip);
+  });
+
+  row.querySelector('[data-act="reset"]').onclick=()=>{
+    closeCard();
+    focus={pos:home.clone(),tgt:homeT.clone(),t0:performance.now()/1000};
+  };
+  row.querySelector('[data-act="sound"]').onclick=()=>{
+    AU.on=!AU.on;
+    document.querySelectorAll('[data-act="sound"]').forEach(b=>{b.textContent=AU.on?'🔊 เสียง':'🔇 ปิดเสียง';});
+    if(AU.on)ac();
+  };
+  row.querySelector('[data-act="cam"]').onclick=()=>toggleCam();
+  hand.onclick=()=>{
+    ac();
+    document.getElementById(cfg.btn).click();
+  };
+
+  let lw=0,lh=0;
+  function resize(){
+    const w=view.clientWidth,h=view.clientHeight;
+    if(!w||!h||(w===lw&&h===lh))return;
+    lw=w;lh=h;
+    renderer.setSize(w,h,false);
+    camera.aspect=w/h;
+    camera.updateProjectionMatrix();
+  }
+  if(window.ResizeObserver)new ResizeObserver(resize).observe(view);
+  window.addEventListener('resize',resize);
+
+  const tmp=new THREE.Vector3();
+  function frame(){
+    requestAnimationFrame(frame);
+    if(!view.offsetParent)return;
+    resize();
+    const now=performance.now()/1000;
+    if(focus){
+      camera.position.lerp(focus.pos,.08);
+      controls.target.lerp(focus.tgt,.08);
+      if(now-focus.t0>1.6)focus=null;
+    }
+    tick(now);
+    controls.update();
+    renderer.render(scene,camera);
+    hs.forEach(h=>{
+      tmp.copy(h.at()).project(camera);
+      const vis=tmp.z<1;
+      h.el.style.display=vis?'':'none';
+      if(vis)h.el.style.transform=`translate(${(tmp.x*.5+.5)*lw-17}px,${(-tmp.y*.5+.5)*lh-17}px)`;
+    });
+  }
+  frame();
+
+  return{setCount:setCount,play:play};
+}
+
+const dock=document.createElement('div');
+dock.className='camDock';
+dock.hidden=true;
+dock.innerHTML=`
+  <div class="camHead"><b>🖐️ โยนด้วยมือ • MediaPipe</b><button class="x" aria-label="ปิดกล้อง">✕</button></div>
+  <div class="camView"><video playsinline muted></video><canvas></canvas><div class="camEmoji">👋</div></div>
+  <div class="camStatus">กำลังเริ่มกล้อง…</div>
+  <div class="camHelp">✊ กำมือ แล้ว 🖐️ แบมือ หรือสะบัดมือลง เพื่อโยน ใช้ได้ในแท็บ ② ③ ④ ⑤</div>`;
+document.body.append(dock);
+const video=dock.querySelector('video'),cv=dock.querySelector('canvas'),cx=cv.getContext('2d');
+const emo=dock.querySelector('.camEmoji'),stat=dock.querySelector('.camStatus');
+const TR={on:false,hands:null,stream:null,busy:false,fistAt:0,lastThrow:0,prev:null};
+const HC=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+function setStatus(t){stat.textContent=t;}
+function setCamButtons(){
+  document.querySelectorAll('[data-act="cam"]').forEach(b=>{b.textContent=TR.on?'📷 ปิดกล้อง':'📷 โยนด้วยมือ';});
+}
+function fire(){
+  const now=performance.now();
+  if(now-TR.lastThrow<1800)return false;
+  const b=document.querySelector('.panel.active .handBtn');
+  if(!b){setStatus('แท็บนี้ไม่มีฉากโยน เลือกแท็บ ② ③ ④ หรือ ⑤');return false;}
+  TR.lastThrow=now;
+  b.click();
+  emo.classList.remove('flash');void emo.offsetWidth;emo.classList.add('flash');
+  setStatus('🤚 โยน!');
+  return true;
+}
+function onResults(res){
+  cv.width=video.videoWidth||480;cv.height=video.videoHeight||360;
+  cx.clearRect(0,0,cv.width,cv.height);
+  const L=res.multiHandLandmarks&&res.multiHandLandmarks[0];
+  if(!L){TR.prev=null;emo.textContent='👋';setStatus('ยกมือให้อยู่ในกรอบกล้อง');return;}
+  cx.strokeStyle='rgba(255,67,198,.95)';cx.lineWidth=3;
+  HC.forEach(p=>{
+    cx.beginPath();
+    cx.moveTo(L[p[0]].x*cv.width,L[p[0]].y*cv.height);
+    cx.lineTo(L[p[1]].x*cv.width,L[p[1]].y*cv.height);
+    cx.stroke();
+  });
+  cx.fillStyle='#20d8ff';
+  L.forEach(p=>{cx.beginPath();cx.arc(p.x*cv.width,p.y*cv.height,4,0,Math.PI*2);cx.fill();});
+  const d=(a,b)=>Math.hypot(L[a].x-L[b].x,L[a].y-L[b].y);
+  const ext=[[8,6],[12,10],[16,14],[20,18]].reduce((s,p)=>s+(d(p[0],0)>d(p[1],0)*1.1?1:0),0);
+  const now=performance.now();
+  const px=(L[0].x+L[5].x+L[9].x+L[17].x)/4,py=(L[0].y+L[5].y+L[9].y+L[17].y)/4;
+  const st=ext<=1?'fist':ext>=3?'open':'mid';
+  emo.textContent=st==='fist'?'✊':st==='open'?'🖐️':'✋';
+  let go=false;
+  if(st==='fist')TR.fistAt=now;
+  if(st==='open'&&TR.fistAt&&now-TR.fistAt<1000)go=true;
+  if(TR.prev&&st!=='fist'){
+    const dt=(now-TR.prev.t)/1000;
+    if(dt>0){
+      const vy=(py-TR.prev.y)/dt,sp=Math.hypot(px-TR.prev.x,py-TR.prev.y)/dt;
+      if(vy>1.6||sp>2.6)go=true;
+    }
+  }
+  TR.prev={x:px,y:py,t:now};
+  if(go){
+    TR.fistAt=0;
+    if(!fire())return;
+  }else if(now-TR.lastThrow>1200){
+    setStatus(st==='fist'?'กำมือแล้ว แบมือเพื่อโยน':'พร้อมแล้ว กำมือแล้วแบมือ หรือสะบัดมือลง');
+  }
+}
+function camLoop(){
+  if(!TR.on)return;
+  if(video.readyState>=2&&!TR.busy){
+    TR.busy=true;
+    TR.hands.send({image:video}).then(()=>{TR.busy=false;}).catch(()=>{TR.busy=false;});
+  }
+  requestAnimationFrame(camLoop);
+}
+async function startCam(){
+  if(!window.Hands){setStatus('โหลด MediaPipe ไม่สำเร็จ ตรวจสอบอินเทอร์เน็ต');return false;}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){setStatus('เบราว์เซอร์นี้ใช้กล้องไม่ได้ (ต้องเปิดผ่าน https หรือ localhost)');return false;}
+  try{
+    TR.stream=await navigator.mediaDevices.getUserMedia({video:{width:480,height:360,facingMode:'user'},audio:false});
+  }catch(e){
+    setStatus('ไม่ได้รับอนุญาตให้ใช้กล้อง');
+    return false;
+  }
+  video.srcObject=TR.stream;
+  try{await video.play();}catch(e){}
+  if(!TR.hands){
+    TR.hands=new Hands({locateFile:f=>'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/'+f});
+    TR.hands.setOptions({maxNumHands:1,modelComplexity:1,minDetectionConfidence:.6,minTrackingConfidence:.5});
+    TR.hands.onResults(onResults);
+  }
+  TR.on=true;
+  setCamButtons();
+  setStatus('กำลังโหลดโมเดลตรวจจับมือ…');
+  camLoop();
+  return true;
+}
+function stopCam(){
+  TR.on=false;
+  if(TR.stream)TR.stream.getTracks().forEach(t=>t.stop());
+  TR.stream=null;
+  video.srcObject=null;
+  dock.hidden=true;
+  setCamButtons();
+}
+function toggleCam(){
+  if(TR.on){stopCam();return;}
+  ac();
+  dock.hidden=false;
+  setStatus('กำลังเริ่มกล้อง…');
+  startCam().then(ok=>{if(!ok)setCamButtons();});
+}
+dock.querySelector('.x').onclick=stopCam;
+
+const D=makeStage('dice'),C=makeStage('coin'),B=makeStage('ball'),K=makeStage('card');
+const ud=window.updateDiceUI;
+window.updateDiceUI=function(v){
+  ud(v);
+  if(v)D.play(v);else D.setCount(diceCount());
+};
+const uc=window.updateCoinUI;
+window.updateCoinUI=function(p){
+  uc(p);
+  if(p)C.play(p.split('').map(ch=>ch==='H'));else C.setCount(coinCount());
+};
+const db=window.drawBalls;
+window.drawBalls=function(n){
+  db(n);
+  const colors=[...document.querySelectorAll('#drawnResult .drawTag')].map(t=>['red','blue','green','yellow'].find(c=>t.classList.contains(c))).filter(Boolean);
+  if(colors.length)B.play(colors);
+};
+['#redSlider','#blueSlider','#greenSlider','#yellowSlider'].forEach(s=>{
+  document.querySelector(s).addEventListener('input',()=>B.setCount());
+});
+document.querySelector('#resetDraw').addEventListener('click',()=>B.setCount());
+const uk=window.updateCardExperimental;
+window.updateCardExperimental=function(last){
+  uk(last);
+  if(last!==null&&last!==undefined)K.play(last);else K.setCount();
+};
+D.setCount(diceCount());
+C.setCount(coinCount());
+B.setCount();
+K.setCount();
+})();
+</script>
+</body>
+</html>
